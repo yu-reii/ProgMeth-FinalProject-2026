@@ -2,8 +2,7 @@ package application;
 
 import entity.Player;
 import entity.tile.*;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,8 +13,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -23,22 +22,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class Main extends Application {
+    private Stage window;
+
     private GridPane boardView;
     private MapManager mapManager;
+    private DiceManager diceManager;
+    private BoardRenderer boardRenderer;
+    private ActionPopupManager actionPopupManager;
 
     private Player player1;
     private Player player2;
     private boolean isPlayer1Turn = true;
-    private Label statusLabel;
-    private Random dice = new Random();
-    private Button rollBtn;
 
-    // 🟢 ตัวแปรสำหรับแสดงภาพลูกเต๋า
-    private Label diceLabel;
-    private final String[] diceFaces = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"}; // หน้าลูกเต๋า 1-6
+    private Label turnLabel;
+    private Label statusLabel;
+    private Button rollBtn;
 
     private int remainingSteps = 0;
     private Player currentPlayer;
@@ -46,107 +46,297 @@ public class Main extends Application {
     private boolean isMoving = false;
     private Map<Player, Tile> previousTiles = new HashMap<>();
 
+    private Font pixelFontLarge;
+    private Font pixelFontMedium;
+    private Font pixelFontHuge;
+
+    // ตัวแปรจำรูปที่ผู้เล่นเลือก และเก็บลิสต์ภาพเพื่อใช้อัปเดตแสงไฮไลท์
+    private Image p1SelectedAvatar;
+    private Image p2SelectedAvatar;
+    private List<ImageView> p1AvatarViews = new ArrayList<>();
+    private List<ImageView> p2AvatarViews = new ArrayList<>();
+
     @Override
     public void start(Stage primaryStage) {
+        this.window = primaryStage;
+
+        // 🟢 ระบบโหลดฟอนต์ (เพิ่มการ Print แจ้งเตือนถ้าหาไฟล์ไม่เจอ)
+        try {
+            var fontStream = getClass().getResourceAsStream("/font/pixel.ttf");
+            if (fontStream == null) {
+                System.out.println("❌ หาไฟล์ฟอนต์ไม่เจอ! เช็คว่าโฟลเดอร์ font อยู่ใน src/main/resources หรือไม่");
+            } else {
+                pixelFontHuge = Font.loadFont(getClass().getResourceAsStream("/font/pixel.ttf"), 60);
+                pixelFontLarge = Font.loadFont(getClass().getResourceAsStream("/font/pixel.ttf"), 32);
+                pixelFontMedium = Font.loadFont(getClass().getResourceAsStream("/font/pixel.ttf"), 20);
+            }
+            if (pixelFontLarge == null) throw new Exception("Font not found");
+        } catch (Exception e) {
+            System.out.println("⚠️ โหลดฟอนต์ Pixel ไม่สำเร็จ จะใช้ฟอนต์ตัวหนาธรรมดาแทน");
+            pixelFontHuge = Font.font("Courier New", FontWeight.BOLD, 50);
+            pixelFontLarge = Font.font("Courier New", FontWeight.BOLD, 28);
+            pixelFontMedium = Font.font("Courier New", FontWeight.BOLD, 18);
+        }
+
         player1 = new Player("Player 1 (Blue)", Color.DODGERBLUE);
         player2 = new Player("Player 2 (Green)", Color.LIMEGREEN);
 
+        showStartScreen();
+
+        window.setTitle("20x20 Epic Board Game");
+        window.show();
+    }
+
+    private void showStartScreen() {
+        VBox root = new VBox(40);
+        root.setAlignment(Pos.CENTER);
+        root.setBackground(new Background(new BackgroundFill(Color.web("#1A252C"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        Label title = new Label("PIXEL ADVENTURE");
+        title.setFont(pixelFontHuge);
+        title.setTextFill(Color.GOLD);
+        title.setStyle("-fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 5);");
+
+        Button startBtn = new Button("START GAME");
+        startBtn.setFont(pixelFontLarge);
+        startBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-padding: 15 50; -fx-background-radius: 10; -fx-cursor: hand;");
+        startBtn.setOnAction(e -> showProfileSelectionScreen());
+
+        root.getChildren().addAll(title, startBtn);
+        window.setScene(new Scene(root, 950, 850));
+    }
+
+    private void showProfileSelectionScreen() {
+        VBox root = new VBox(25);
+        root.setAlignment(Pos.CENTER);
+        root.setBackground(new Background(new BackgroundFill(Color.web("#2C3E50"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        Label title = new Label("CHOOSE YOUR CHARACTER");
+        title.setFont(pixelFontLarge);
+        title.setTextFill(Color.WHITE);
+
+        Image img1 = loadImageSafely("/profile/pic1.png");
+        Image img2 = loadImageSafely("/profile/pic2.png");
+        Image img3 = loadImageSafely("/profile/pic3.png");
+        Image[] images = {img1, img2, img3};
+
+        // ตั้งค่ารูปเริ่มต้นให้ไม่ซ้ำกัน
+        p1SelectedAvatar = img1;
+        p2SelectedAvatar = img2 != null ? img2 : img1;
+
+        Label errorLabel = new Label(""); // 🟢 ป้ายแจ้งเตือนสีแดงเวลาเลือกซ้ำ
+        errorLabel.setFont(pixelFontMedium);
+        errorLabel.setTextFill(Color.web("#E74C3C"));
+
+        Label p1Label = new Label("Player 1:");
+        p1Label.setFont(pixelFontMedium); p1Label.setTextFill(Color.DODGERBLUE);
+        HBox p1Box = createAvatarBox(images, true, errorLabel);
+
+        Label p2Label = new Label("Player 2:");
+        p2Label.setFont(pixelFontMedium); p2Label.setTextFill(Color.LIMEGREEN);
+        HBox p2Box = createAvatarBox(images, false, errorLabel);
+
+        Button playBtn = new Button("PLAY NOW!");
+        playBtn.setFont(pixelFontLarge);
+        playBtn.setStyle("-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-padding: 15 50; -fx-background-radius: 10; -fx-cursor: hand;");
+        playBtn.setOnAction(e -> {
+            if (p1SelectedAvatar == p2SelectedAvatar && p1SelectedAvatar != null) {
+                errorLabel.setText("❌ Players cannot choose the same character!");
+                return;
+            }
+            player1.setAvatar(p1SelectedAvatar);
+            player2.setAvatar(p2SelectedAvatar);
+            showGameScreen();
+        });
+
+        // อัปเดตแสงไฮไลท์ครั้งแรก
+        updateAvatarVisuals();
+
+        root.getChildren().addAll(title, errorLabel, p1Label, p1Box, p2Label, p2Box, playBtn);
+        window.setScene(new Scene(root, 950, 850));
+    }
+
+    // 🟢 ระบบสร้างกล่องเลือกรูป พร้อมป้องกันการเลือกซ้ำ
+    private HBox createAvatarBox(Image[] images, boolean isPlayer1, Label errorLabel) {
+        HBox box = new HBox(30);
+        box.setAlignment(Pos.CENTER);
+
+        List<ImageView> currentList = isPlayer1 ? p1AvatarViews : p2AvatarViews;
+        currentList.clear();
+
+        for (Image img : images) {
+            if (img == null) continue;
+
+            ImageView iv = new ImageView(img);
+            iv.setFitWidth(100); iv.setFitHeight(100);
+            iv.setStyle("-fx-cursor: hand;");
+
+            iv.setOnMouseClicked(e -> {
+                if(isPlayer1) {
+                    if (img == p2SelectedAvatar) {
+                        errorLabel.setText("❌ Player 2 already selected this!");
+                        return;
+                    }
+                    p1SelectedAvatar = img;
+                } else {
+                    if (img == p1SelectedAvatar) {
+                        errorLabel.setText("❌ Player 1 already selected this!");
+                        return;
+                    }
+                    p2SelectedAvatar = img;
+                }
+                errorLabel.setText(""); // ล้างข้อความเตือนเมื่อเลือกถูก
+                updateAvatarVisuals();
+            });
+            currentList.add(iv);
+            box.getChildren().add(iv);
+        }
+        return box;
+    }
+
+    // 🟢 ฟังก์ชันอัปเดตแสงไฮไลท์ และทำรูปที่โดนเลือกไปแล้วให้จางลง (Opacity)
+    private void updateAvatarVisuals() {
+        for (ImageView v : p1AvatarViews) {
+            if (v.getImage() == p1SelectedAvatar) {
+                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, DODGERBLUE, 20, 0.8, 0, 0);");
+                v.setOpacity(1.0);
+            } else if (v.getImage() == p2SelectedAvatar) {
+                v.setStyle("-fx-cursor: default;");
+                v.setOpacity(0.3); // รูปที่ P2 เลือกไปแล้วจะจางลง
+            } else {
+                v.setStyle("-fx-cursor: hand;");
+                v.setOpacity(1.0);
+            }
+        }
+
+        for (ImageView v : p2AvatarViews) {
+            if (v.getImage() == p2SelectedAvatar) {
+                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, LIMEGREEN, 20, 0.8, 0, 0);");
+                v.setOpacity(1.0);
+            } else if (v.getImage() == p1SelectedAvatar) {
+                v.setStyle("-fx-cursor: default;");
+                v.setOpacity(0.3); // รูปที่ P1 เลือกไปแล้วจะจางลง
+            } else {
+                v.setStyle("-fx-cursor: hand;");
+                v.setOpacity(1.0);
+            }
+        }
+    }
+
+    private Image loadImageSafely(String path) {
+        try {
+            var resource = getClass().getResource(path);
+            if (resource != null) return new Image(resource.toExternalForm());
+        } catch (Exception e) {}
+        return null;
+    }
+
+    // --- ส่วนของ Game Screen ด้านล่างคงเดิม ---
+    private void showGameScreen() {
         mapManager = new MapManager();
+        diceManager = new DiceManager();
+        actionPopupManager = new ActionPopupManager();
+
         setupGame();
 
-        BorderPane root = new BorderPane();
-        root.setPadding(new Insets(10));
-        root.setBackground(new Background(new BackgroundFill(Color.web("#F0F8FF"), CornerRadii.EMPTY, Insets.EMPTY)));
+        StackPane mainRoot = new StackPane();
+        BorderPane gameLayout = new BorderPane();
+        gameLayout.setPadding(new Insets(10));
+        gameLayout.setBackground(new Background(new BackgroundFill(Color.web("#F0F8FF"), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        statusLabel = new Label("Game Start! Player 1's Turn.");
-        statusLabel.setFont(Font.font("Arial", 22));
-        HBox topBox = new HBox(statusLabel);
+        turnLabel = new Label();
+        turnLabel.setFont(pixelFontLarge);
+        turnLabel.setPadding(new Insets(10, 30, 10, 30));
+        updateTurnIndicator();
+
+        statusLabel = new Label("Game Start! Please roll the dice.");
+        statusLabel.setFont(pixelFontMedium);
+        statusLabel.setTextFill(Color.DARKGRAY);
+
+        VBox topBox = new VBox(10, turnLabel, statusLabel);
         topBox.setAlignment(Pos.CENTER);
         topBox.setPadding(new Insets(10));
-        root.setTop(topBox);
+        gameLayout.setTop(topBox);
 
         boardView = new GridPane();
         boardView.setHgap(0);
         boardView.setVgap(0);
         boardView.setAlignment(Pos.CENTER);
-        root.setCenter(boardView);
+        gameLayout.setCenter(boardView);
 
-        // 🟢 สร้างป้ายแสดงผลลูกเต๋า
-        diceLabel = new Label("🎲");
-        diceLabel.setFont(Font.font("Arial", 60)); // ทำให้ขนาดใหญ่จุใจ
-        diceLabel.setTextFill(Color.DARKORANGE);
+        boardRenderer = new BoardRenderer(boardView, mapManager, player1, player2, selectedTile -> {
+            previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
+            currentPlayer.moveForward(selectedTile);
+            remainingSteps--;
+            boardRenderer.updateBoard(null);
 
-        rollBtn = new Button("Roll Dice");
-        rollBtn.setFont(Font.font("Arial", 18));
-        rollBtn.setStyle("-fx-background-color: #FF5733; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8;");
+            PauseTransition delay = new PauseTransition(Duration.millis(300));
+            delay.setOnFinished(ev -> processMovement());
+            delay.play();
+        });
+
+        rollBtn = new Button("Roll Dice 🎲");
+        rollBtn.setFont(pixelFontMedium);
+        rollBtn.setStyle("-fx-background-color: #FF5733; -fx-text-fill: white; -fx-padding: 10 30; -fx-background-radius: 8; -fx-cursor: hand;");
         rollBtn.setOnAction(e -> {
             if (!isMoving) startTurn();
         });
 
         Button restartBtn = new Button("Restart Game 🔄");
-        restartBtn.setFont(Font.font("Arial", 18));
-        restartBtn.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8;");
+        restartBtn.setFont(pixelFontMedium);
+        restartBtn.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-padding: 10 30; -fx-background-radius: 8; -fx-cursor: hand;");
         restartBtn.setOnAction(e -> {
             setupGame();
             isPlayer1Turn = true;
             isMoving = false;
             rollBtn.setDisable(false);
-            diceLabel.setText("🎲"); // รีเซ็ตหน้าลูกเต๋า
-            statusLabel.setText("New Game! Player 1's Turn.");
-            updateBoard(null);
+            updateTurnIndicator();
+            statusLabel.setText("New Game! Please roll the dice.");
+            boardRenderer.updateBoard(null);
         });
 
-        // 🟢 เอาลูกเต๋าไปวางไว้ตรงกลางระหว่างปุ่มทอย กับ ปุ่มรีสตาร์ท
-        HBox bottomBox = new HBox(30, rollBtn, diceLabel, restartBtn);
+        HBox bottomBox = new HBox(40, rollBtn, restartBtn);
         bottomBox.setAlignment(Pos.CENTER);
         bottomBox.setPadding(new Insets(15));
-        root.setBottom(bottomBox);
+        gameLayout.setBottom(bottomBox);
 
-        updateBoard(null);
+        mainRoot.getChildren().addAll(gameLayout, diceManager.getDiceOverlay(), actionPopupManager.getOverlay());
+        boardRenderer.updateBoard(null);
 
-        Scene scene = new Scene(root, 950, 850);
-        primaryStage.setTitle("20x20 Epic Board Game");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        window.setScene(new Scene(mainRoot, 950, 850));
     }
 
     private void setupGame() {
         mapManager.generateRandomMap();
         Tile start = mapManager.getStartTile();
-
         player1.setCurrentTile(start);
         player2.setCurrentTile(start);
-
         previousTiles.put(player1, null);
         previousTiles.put(player2, null);
+    }
+
+    private void updateTurnIndicator() {
+        if (isPlayer1Turn) {
+            turnLabel.setText("🎯 " + player1.getName() + "'s Turn");
+            turnLabel.setStyle("-fx-background-color: DODGERBLUE; -fx-text-fill: white; -fx-background-radius: 20;");
+        } else {
+            turnLabel.setText("🎯 " + player2.getName() + "'s Turn");
+            turnLabel.setStyle("-fx-background-color: LIMEGREEN; -fx-text-fill: white; -fx-background-radius: 20;");
+        }
     }
 
     private void startTurn() {
         currentPlayer = isPlayer1Turn ? player1 : player2;
         enemyPlayer = isPlayer1Turn ? player2 : player1;
-
         isMoving = true;
         rollBtn.setDisable(true);
-        statusLabel.setText(currentPlayer.getName() + " is rolling...");
+        statusLabel.setText("Rolling...");
 
-        // 🌟 สร้างแอนิเมชันลูกเต๋ากลิ้ง (สุ่มหน้าลูกเต๋ารัวๆ 10 ครั้ง)
-        Timeline rollAnimation = new Timeline();
-        for (int i = 0; i < 10; i++) {
-            rollAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(50 * i), e -> {
-                int randomFace = dice.nextInt(6);
-                diceLabel.setText(diceFaces[randomFace]); // สลับหน้าลูกเต๋าไปมา
-            }));
-        }
-
-        // 🌟 เมื่อแอนิเมชันกลิ้งจบลง ค่อยสุ่มแต้มจริงและเริ่มเดิน
-        rollAnimation.setOnFinished(e -> {
-            remainingSteps = dice.nextInt(6) + 1;
-            diceLabel.setText(diceFaces[remainingSteps - 1]); // โชว์แต้มที่สุ่มได้จริง
-            statusLabel.setText(currentPlayer.getName() + " rolled " + remainingSteps + "! Moving...");
+        diceManager.rollDice(steps -> {
+            remainingSteps = steps;
+            statusLabel.setText("Rolled " + remainingSteps + "! Moving...");
             processMovement();
         });
-
-        rollAnimation.play(); // เริ่มเล่นแอนิเมชันลูกเต๋า
     }
 
     private void processMovement() {
@@ -158,17 +348,19 @@ public class Main extends Application {
                 previousTiles.put(currentPlayer, null);
             }
 
-            statusLabel.setText(currentPlayer.getName() + " landed! " + effectMessage);
-            isPlayer1Turn = !isPlayer1Turn;
-            isMoving = false;
-            rollBtn.setDisable(false);
-            updateBoard(null);
+            actionPopupManager.showPopup(landedTile, effectMessage, () -> {
+                statusLabel.setText("Landed on " + landedTile.getName() + "! " + effectMessage);
+                isPlayer1Turn = !isPlayer1Turn;
+                updateTurnIndicator();
+                isMoving = false;
+                rollBtn.setDisable(false);
+                boardRenderer.updateBoard(null);
+            });
             return;
         }
 
         Tile current = currentPlayer.getCurrentTile();
         Tile previous = previousTiles.get(currentPlayer);
-
         List<Tile> choices = new ArrayList<>(current.getNextTiles());
 
         if (choices.size() > 1 && previous != null) {
@@ -183,65 +375,14 @@ public class Main extends Application {
             previousTiles.put(currentPlayer, current);
             currentPlayer.moveForward(nextTile);
             remainingSteps--;
-            processMovement();
+            boardRenderer.updateBoard(null);
+
+            PauseTransition delay = new PauseTransition(Duration.millis(300));
+            delay.setOnFinished(e -> processMovement());
+            delay.play();
         } else {
             statusLabel.setText("Intersection! Click on a YELLOW box to choose your path. (" + remainingSteps + " steps left)");
-            updateBoard(choices);
-        }
-    }
-
-    private void updateBoard(List<Tile> highlights) {
-        boardView.getChildren().clear();
-        Tile[][] gridTiles = mapManager.getGridTiles();
-
-        for (int y = 0; y < 20; y++) {
-            for (int x = 0; x < 20; x++) {
-                Tile tile = gridTiles[y][x];
-                StackPane box = new StackPane();
-                box.setPrefSize(35, 35);
-
-                if (tile != null) {
-                    String imageFileName = "sand.png";
-                    if (tile instanceof CrabTile) imageFileName = "crab.png";
-                    else if (tile instanceof JellyfishTile) imageFileName = "jellyfish.png";
-                    else if (tile instanceof TornadoTile) imageFileName = "tornado.png";
-                    else if (tile instanceof CardTile) imageFileName = "card.png";
-
-                    try {
-                        String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
-                        Image img = new Image(imagePath);
-                        ImageView imageView = new ImageView(img);
-                        imageView.setFitWidth(35);
-                        imageView.setFitHeight(35);
-                        box.getChildren().add(imageView);
-                    } catch (Exception e) {
-                        box.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-                    }
-
-                    if (highlights != null && highlights.contains(tile)) {
-                        box.setBorder(new Border(new BorderStroke(Color.GOLD, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(3))));
-                        box.setStyle("-fx-cursor: hand;");
-                        box.setOnMouseClicked(e -> {
-                            previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
-                            currentPlayer.moveForward(tile);
-                            remainingSteps--;
-                            processMovement();
-                        });
-                    } else {
-                        box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0.5))));
-                    }
-
-                    HBox tokens = new HBox(2);
-                    tokens.setAlignment(Pos.CENTER);
-                    if (player1.getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, player1.getColor()));
-                    if (player2.getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, player2.getColor()));
-                    box.getChildren().add(tokens);
-                } else {
-                    box.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
-                }
-
-                boardView.add(box, x, y);
-            }
+            boardRenderer.updateBoard(choices);
         }
     }
 

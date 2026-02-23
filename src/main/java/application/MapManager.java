@@ -13,6 +13,7 @@ public class MapManager {
     public void generateRandomMap() {
         allTiles = new ArrayList<>();
         gridTiles = new Tile[20][20];
+        Random random = new Random();
 
         List<String[]> allMaps = new ArrayList<>();
 
@@ -112,10 +113,11 @@ public class MapManager {
                 "OOOOOOOOOOYOOOOOOOOG"
         });
 
-        int randomMapIndex = new Random().nextInt(allMaps.size());
+        int randomMapIndex = random.nextInt(allMaps.size());
         String[] mapLayout = allMaps.get(randomMapIndex);
         System.out.println("เริ่มเกมใหม่! สุ่มได้แผนที่: " + (randomMapIndex + 1));
 
+        // 1. สร้าง StartTile ก่อนเพื่อเตรียมไว้ใช้กับ Tornado
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 if (mapLayout[y].charAt(x) == 'S') {
@@ -126,16 +128,35 @@ public class MapManager {
             }
         }
 
+        // 2. สร้างช่องอื่นๆ และสุ่มแรนด้อม Action
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 char c = mapLayout[y].charAt(x);
+
+                if (c == 'S' || c == ' ') {
+                    continue; // ข้ามช่อง Start (ทำไปแล้ว) และช่องว่าง
+                }
+
                 Tile newTile = null;
 
-                if (c == 'O' || c == 'G') newTile = new SandTile((c=='G'?"Goal":"Sand"), x, y);
-                else if (c == 'X') newTile = new CrabTile("Crab", x, y);
-                else if (c == 'Y') newTile = new JellyfishTile("Jelly", x, y);
-                else if (c == 'C') newTile = new CardTile("Card", x, y);
-                else if (c == 'T') newTile = new TornadoTile("Tornado", x, y, startTile);
+                if (c == 'G') {
+                    newTile = new SandTile("Goal", x, y);
+                } else {
+                    // 🟢 สุ่มช่องทางเดินปกติทั้งหมดให้เป็น Action สุดเดือด!
+                    int chance = random.nextInt(100);
+
+                    if (chance < 40) {
+                        newTile = new SandTile("Sand", x, y);
+                    } else if (chance < 60) {
+                        newTile = new CrabTile("Crab", x, y);
+                    } else if (chance < 75) {
+                        newTile = new JellyfishTile("Jellyfish", x, y);
+                    } else if (chance < 90) {
+                        newTile = new TornadoTile("Tornado", x, y, startTile);
+                    } else {
+                        newTile = new CardTile("Card", x, y);
+                    }
+                }
 
                 if (newTile != null) {
                     gridTiles[y][x] = newTile;
@@ -144,6 +165,7 @@ public class MapManager {
             }
         }
 
+        // 3. เชื่อมต่อเส้นทางให้เดินได้
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 Tile t = gridTiles[y][x];

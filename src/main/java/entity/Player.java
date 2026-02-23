@@ -3,6 +3,7 @@ package entity;
 import entity.tile.Tile;
 import javafx.scene.paint.Color;
 import java.util.Stack;
+import javafx.scene.image.Image;
 
 public class Player {
     private String name;
@@ -49,5 +50,14 @@ public class Player {
     // เพิ่มเมธอดนี้ต่อท้ายใน Player.java
     public Stack<Tile> getHistory() {
         return history;
+    }
+    private Image avatar; // 🟢 ตัวแปรเก็บรูปโปรไฟล์
+
+    public Image getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(Image avatar) {
+        this.avatar = avatar;
     }
 }
