@@ -18,4 +18,8 @@ public class Player {
     public void setCurrentTile(Tile currentTile) {
         this.currentTile = currentTile;
     }
+
+    public String getName(){
+        return this.name;
+    }
 }
