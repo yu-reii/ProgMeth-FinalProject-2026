@@ -2,6 +2,8 @@ package application;
 
 import entity.Player;
 import entity.tile.*;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,9 +17,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 public class Main extends Application {
@@ -31,11 +36,15 @@ public class Main extends Application {
     private Random dice = new Random();
     private Button rollBtn;
 
-    // 🟢 ตัวแปรใหม่สำหรับคุมการเดินทีละก้าว
+    // 🟢 ตัวแปรสำหรับแสดงภาพลูกเต๋า
+    private Label diceLabel;
+    private final String[] diceFaces = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"}; // หน้าลูกเต๋า 1-6
+
     private int remainingSteps = 0;
     private Player currentPlayer;
     private Player enemyPlayer;
     private boolean isMoving = false;
+    private Map<Player, Tile> previousTiles = new HashMap<>();
 
     @Override
     public void start(Stage primaryStage) {
@@ -62,11 +71,16 @@ public class Main extends Application {
         boardView.setAlignment(Pos.CENTER);
         root.setCenter(boardView);
 
-        rollBtn = new Button("Roll Dice 🎲");
+        // 🟢 สร้างป้ายแสดงผลลูกเต๋า
+        diceLabel = new Label("🎲");
+        diceLabel.setFont(Font.font("Arial", 60)); // ทำให้ขนาดใหญ่จุใจ
+        diceLabel.setTextFill(Color.DARKORANGE);
+
+        rollBtn = new Button("Roll Dice");
         rollBtn.setFont(Font.font("Arial", 18));
         rollBtn.setStyle("-fx-background-color: #FF5733; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8;");
         rollBtn.setOnAction(e -> {
-            if (!isMoving) startTurn(); // 🟢 กดได้เฉพาะตอนที่ไม่ได้เดินอยู่
+            if (!isMoving) startTurn();
         });
 
         Button restartBtn = new Button("Restart Game 🔄");
@@ -77,11 +91,13 @@ public class Main extends Application {
             isPlayer1Turn = true;
             isMoving = false;
             rollBtn.setDisable(false);
+            diceLabel.setText("🎲"); // รีเซ็ตหน้าลูกเต๋า
             statusLabel.setText("New Game! Player 1's Turn.");
             updateBoard(null);
         });
 
-        HBox bottomBox = new HBox(20, rollBtn, restartBtn);
+        // 🟢 เอาลูกเต๋าไปวางไว้ตรงกลางระหว่างปุ่มทอย กับ ปุ่มรีสตาร์ท
+        HBox bottomBox = new HBox(30, rollBtn, diceLabel, restartBtn);
         bottomBox.setAlignment(Pos.CENTER);
         bottomBox.setPadding(new Insets(15));
         root.setBottom(bottomBox);
@@ -89,7 +105,7 @@ public class Main extends Application {
         updateBoard(null);
 
         Scene scene = new Scene(root, 950, 850);
-        primaryStage.setTitle("20x20 Epic Board Game (Interactive Map)");
+        primaryStage.setTitle("20x20 Epic Board Game");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -100,66 +116,80 @@ public class Main extends Application {
 
         player1.setCurrentTile(start);
         player2.setCurrentTile(start);
-        player1.getHistory().clear();
-        player2.getHistory().clear();
+
+        previousTiles.put(player1, null);
+        previousTiles.put(player2, null);
     }
 
-    // 🟢 เริ่มต้นทอยลูกเต๋า
     private void startTurn() {
         currentPlayer = isPlayer1Turn ? player1 : player2;
         enemyPlayer = isPlayer1Turn ? player2 : player1;
 
-        remainingSteps = dice.nextInt(6) + 1;
         isMoving = true;
-        rollBtn.setDisable(true); // ปิดปุ่มทอยลูกเต๋าชั่วคราว
+        rollBtn.setDisable(true);
+        statusLabel.setText(currentPlayer.getName() + " is rolling...");
 
-        statusLabel.setText(currentPlayer.getName() + " rolled " + remainingSteps + "! Moving...");
-        processMovement();
+        // 🌟 สร้างแอนิเมชันลูกเต๋ากลิ้ง (สุ่มหน้าลูกเต๋ารัวๆ 10 ครั้ง)
+        Timeline rollAnimation = new Timeline();
+        for (int i = 0; i < 10; i++) {
+            rollAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(50 * i), e -> {
+                int randomFace = dice.nextInt(6);
+                diceLabel.setText(diceFaces[randomFace]); // สลับหน้าลูกเต๋าไปมา
+            }));
+        }
+
+        // 🌟 เมื่อแอนิเมชันกลิ้งจบลง ค่อยสุ่มแต้มจริงและเริ่มเดิน
+        rollAnimation.setOnFinished(e -> {
+            remainingSteps = dice.nextInt(6) + 1;
+            diceLabel.setText(diceFaces[remainingSteps - 1]); // โชว์แต้มที่สุ่มได้จริง
+            statusLabel.setText(currentPlayer.getName() + " rolled " + remainingSteps + "! Moving...");
+            processMovement();
+        });
+
+        rollAnimation.play(); // เริ่มเล่นแอนิเมชันลูกเต๋า
     }
 
-    // 🟢 ระบบประมวลผลการเดินทีละก้าว
     private void processMovement() {
         if (remainingSteps <= 0) {
-            // เดินครบแล้ว ทำงานเอฟเฟกต์ของช่องนั้น
             Tile landedTile = currentPlayer.getCurrentTile();
             String effectMessage = landedTile.applyAction(currentPlayer, enemyPlayer);
 
-            // 🛠️ แก้ปัญหาข้อ 2: ล้างประวัติการเดินเมื่อเจอกลับจุดเริ่มต้น (Tornado)
             if (landedTile instanceof TornadoTile || landedTile.getName().equals("Start")) {
-                currentPlayer.getHistory().clear();
+                previousTiles.put(currentPlayer, null);
             }
 
             statusLabel.setText(currentPlayer.getName() + " landed! " + effectMessage);
             isPlayer1Turn = !isPlayer1Turn;
             isMoving = false;
-            rollBtn.setDisable(false); // เปิดปุ่มทอยให้คนต่อไป
+            rollBtn.setDisable(false);
             updateBoard(null);
             return;
         }
 
         Tile current = currentPlayer.getCurrentTile();
-        Tile previous = currentPlayer.getHistory().isEmpty() ? null : currentPlayer.getHistory().peek();
+        Tile previous = previousTiles.get(currentPlayer);
 
         List<Tile> choices = new ArrayList<>(current.getNextTiles());
-        choices.remove(previous);
+
+        if (choices.size() > 1 && previous != null) {
+            choices.remove(previous);
+        }
 
         if (choices.isEmpty()) {
-            // ทางตัน
             remainingSteps = 0;
             processMovement();
         } else if (choices.size() == 1) {
-            // 🚶 มีทางเดียว เดินหน้าอัตโนมัติ
-            currentPlayer.moveForward(choices.get(0));
+            Tile nextTile = choices.get(0);
+            previousTiles.put(currentPlayer, current);
+            currentPlayer.moveForward(nextTile);
             remainingSteps--;
             processMovement();
         } else {
-            // 🛣️ แก้ปัญหาข้อ 1: เจอทางแยก! หยุดรอให้ผู้เล่นคลิกเลือก
             statusLabel.setText("Intersection! Click on a YELLOW box to choose your path. (" + remainingSteps + " steps left)");
-            updateBoard(choices); // วาดกระดานและส่งช่องทางแยกไปไฮไลท์
+            updateBoard(choices);
         }
     }
 
-    // 🟢 อัปเดตการวาดกระดานให้รองรับการคลิกไฮไลท์
     private void updateBoard(List<Tile> highlights) {
         boardView.getChildren().clear();
         Tile[][] gridTiles = mapManager.getGridTiles();
@@ -188,17 +218,16 @@ public class Main extends Application {
                         box.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
                     }
 
-                    // 🌟 ถ้าระบบส่งไฮไลท์มา และช่องนี้เป็นหนึ่งในทางแยกที่ไปได้
                     if (highlights != null && highlights.contains(tile)) {
                         box.setBorder(new Border(new BorderStroke(Color.GOLD, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(3))));
-                        box.setStyle("-fx-cursor: hand;"); // เปลี่ยนเมาส์เป็นรูปนิ้ว
+                        box.setStyle("-fx-cursor: hand;");
                         box.setOnMouseClicked(e -> {
+                            previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
                             currentPlayer.moveForward(tile);
                             remainingSteps--;
-                            processMovement(); // เมื่อคลิกแล้ว ค่อยสั่งให้เดินก้าวต่อไป
+                            processMovement();
                         });
                     } else {
-                        // กรอบปกติ
                         box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0.5))));
                     }
 

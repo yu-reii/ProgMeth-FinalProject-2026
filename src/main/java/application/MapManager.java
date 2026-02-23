@@ -16,107 +16,106 @@ public class MapManager {
 
         List<String[]> allMaps = new ArrayList<>();
 
-        // 🗺️ แมพที่ 1
+        // 🗺️ แมพที่ 1 (เมืองตาราง)
         allMaps.add(new String[]{
                 "SOOOXOOOOOOOOCOOOOOO",
-                "   O      O        O",
-                "   O   OOOOXOOOO   O",
-                "   C   O       O   T",
-                "   O   O  OOO  O   O",
-                "   O   Y  O O  Y   O",
-                "   OOOOO  O O  OOOOO",
-                "          O O       ",
-                "OOOOOOOXOOO OOOOOOOO",
-                "O                  O",
-                "O  OOOOOOCOOOOOOO  O",
-                "O  O            O  O",
-                "O  O  OOOOOOOO  O  O",
-                "C  O  O      O  X  O",
-                "O  X  O  OO  O  O  O",
-                "O  O  T  O   O  O  O",
-                "O  OOOOOOO   OOOO  O",
-                "O                  O",
+                "O   O   O    O     O",
+                "O   OOOOXOOOOO     O",
+                "C   O   O    O     T",
+                "OOOOO   OOOOOOOO   O",
+                "O   Y   O    Y O   O",
+                "OOOOOOOOO    OOOOOOO",
+                "O       O    O     O",
+                "OOOOOOOXOOOOOOOOOOOO",
+                "O   O        O     O",
+                "O   OOOOOOCOOOOO   O",
+                "O   O      O   O   O",
+                "OOOOOOOOOOOO   OOOOO",
+                "C   O      O   X   O",
+                "O   X   OOOO   O   O",
+                "O   O   T  O   OOOOO",
+                "OOOOOOOOO  OOOOO   O",
+                "O   O      O       O",
                 "OOOOOOOOOYOOOOOOOOOO",
                 "                   G"
         });
 
-        // 🗺️ แมพที่ 2
+        // 🗺️ แมพที่ 2 (ก้นหอยเขาวงกต)
         allMaps.add(new String[]{
-                "SOOOOOOOXOOOOCOOOOOO",
-                "                   O",
-                "OOOOOOCOOOOOOOOO   O",
+                "SOOOOOOXOOOOOOOOOOOO",
                 "O                  O",
-                "O  OOOOOOOOXOOOOOOOO",
-                "O  O                ",
-                "O  OOOOYOOOOOOOOOO C",
+                "O OOOOOOCOOOOOOOOO O",
+                "O O              O O",
+                "O O OOOOOOYOOOOO O O",
+                "O O O          O O O",
+                "O O O OOOXOOOO O O O",
+                "O O O O      O O O O",
+                "O O O O OTOO O O O O",
+                "O O O O O  O O O O O",
+                "O O O O O  O O O O O",
+                "O O O O OOOO O O O O",
+                "O O O O      O O O O",
+                "O O O OOOOOOOO O O O",
+                "O O O      O   O O O",
+                "O O OOOOOXOOOOOO O O",
+                "O O        O     O O",
+                "O OOOOOOOOOOOOOOOO O",
                 "O                  O",
-                "XOOOOOOOOOCOOOOOOO O",
-                "                   O",
-                "OOOOOOOTOOOOOOOOOO O",
-                "O                  O",
+                "OOOOOOOOOYOOOOOOOOOG"
+        });
+
+        // 🗺️ แมพที่ 3 (ทางเดินซิกแซก)
+        allMaps.add(new String[]{
+                "SOOOOOXOOOOOOOCOOOOO",
+                "O     O       O    O",
+                "OOOOOOOOOOOOOOOOOO O",
+                "O     O       O    O",
+                "O OOOOOOYOOOOOOOOOOO",
+                "O O   O       O    O",
+                "OOOOOOOOOXOOOOOOOO O",
+                "O     O       O    O",
+                "O OOOOOOOOOCOOOOOOOO",
+                "O O   O       O    O",
+                "OOOOOOOOOOOOOOOOOO O",
+                "O     O       O    O",
                 "O OOOOOOOXOOOOOOOOOO",
-                "O O                 ",
-                "O OOOOOOOOOOOOOYOOOO",
+                "O O   O       O    O",
+                "OOOOOOOOOOYOOOOOOO O",
+                "O     O       O    O",
+                "O OOOOOOOOOOOOOOOO O",
                 "O                  O",
-                "COOOOOXOOOOOOOOOOO O",
-                "                   O",
                 "OOOOOOOOOOOOOOOOOO O",
                 "                   G"
         });
 
-        // 🗺️ แมพที่ 3
+        // 🗺️ แมพที่ 4 (สมมาตร)
         allMaps.add(new String[]{
-                "SOOOOOOOOOOOOOOOOO O",
-                "O                  O",
-                "O OOOOOOOOOXOOOOOO O",
-                "O O              O O",
-                "O O OOOOOYOOOO C O O",
-                "O O O        O O O O",
-                "O O O OOOXOO O O O O",
-                "O O O O    O O O O O",
-                "O X O O TO O O O C O",
-                "O O O O  O O O O O O",
-                "O O O OOOO O O O O O",
-                "O O O      O O O O O",
-                "O O C OOOOOO O Y O O",
-                "O O O        O O O O",
-                "O O OOOOOXOOOO O O O",
-                "O O            O O O",
-                "O OOOOOOOOOOOOOO O O",
-                "O                O O",
-                "OOOOOOOOOCOOOOOOOO O",
-                "                   G"
-        });
-
-        // 🗺️ แมพที่ 4
-        allMaps.add(new String[]{
-                "SOOOXOOOOOOOOCOOOOOO",
-                "O                  O",
-                "O OOOXOOOOOOOOOO O O",
-                "O O            O O O",
-                "O O OOOOOOYOOO O O O",
-                "O O O        O O O O",
-                "O O O OOOCOO O O O O",
-                "O Y O O    O O O X O",
-                "O O O O TO O O O O O",
-                "O O O O  O O O O O O",
-                "O O O OOOO O C O O O",
-                "O O O      O O O O O",
-                "O O X OOOOOO O O O O",
-                "O C O        O O O O",
-                "O O OOOOOCOOOO O O O",
-                "O O            O O O",
-                "O OOOOOOOOOOOOOO O O",
-                "O                  O",
-                "OOOOOOOOOXOOOOOOOOOO",
-                "                   G"
+                "SOOOOOOOOOXOOOOOOOOO",
+                "O         O        O",
+                "O OOOOOOOOOOOOOOOO O",
+                "O O       O      O O",
+                "O O OOOOOOOOOOOO O O",
+                "O O O     O    O O O",
+                "O O O OOOOOOOO O O O",
+                "O O O O      O O O O",
+                "O O O O OOOO O O O O",
+                "X O O O O  O O O O C",
+                "O O O O O  O O O O O",
+                "O O O O OOOO O O O O",
+                "O O O O      O O O O",
+                "O O O OOOOOOOO O O O",
+                "O O O     O    O O O",
+                "O O OOOOOOOOOOOO O O",
+                "O O       O      O O",
+                "O OOOOOOOOOOOOOOOO O",
+                "O         O        O",
+                "OOOOOOOOOOYOOOOOOOOG"
         });
 
         int randomMapIndex = new Random().nextInt(allMaps.size());
         String[] mapLayout = allMaps.get(randomMapIndex);
         System.out.println("เริ่มเกมใหม่! สุ่มได้แผนที่: " + (randomMapIndex + 1));
 
-        // รอบที่ 1: ค้นหา Start
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 if (mapLayout[y].charAt(x) == 'S') {
@@ -127,7 +126,6 @@ public class MapManager {
             }
         }
 
-        // รอบที่ 2: สร้างช่องต่างๆ
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 char c = mapLayout[y].charAt(x);
@@ -146,7 +144,6 @@ public class MapManager {
             }
         }
 
-        // รอบที่ 3: เชื่อมทางเดิน
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 Tile t = gridTiles[y][x];
@@ -160,7 +157,6 @@ public class MapManager {
         }
     }
 
-    // Getter เอาไว้ให้ Main ดึงไปใช้
     public Tile[][] getGridTiles() { return gridTiles; }
     public Tile getStartTile() { return startTile; }
 }
