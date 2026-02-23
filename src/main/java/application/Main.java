@@ -18,41 +18,28 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import logic.GameLogic;
+import logic.GameUIListener;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
-public class Main extends Application {
+public class Main extends Application implements GameUIListener {
+
+    private GameLogic gameLogic;
+
     private GridPane boardView;
-    private MapManager mapManager;
-
-    private Player player1;
-    private Player player2;
-    private boolean isPlayer1Turn = true;
     private Label statusLabel;
-    private Random dice = new Random();
-    private Button rollBtn;
-
-    // 🟢 ตัวแปรสำหรับแสดงภาพลูกเต๋า
     private Label diceLabel;
-    private final String[] diceFaces = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"}; // หน้าลูกเต๋า 1-6
-
-    private int remainingSteps = 0;
-    private Player currentPlayer;
-    private Player enemyPlayer;
-    private boolean isMoving = false;
-    private Map<Player, Tile> previousTiles = new HashMap<>();
+    private Button rollBtn;
+    private final String[] diceFaces = {"⚀", "⚁", "⚂", "⚃", "⚄", "⚅"};
+    private Random dice = new Random();
+    private boolean isAnimating = false;
 
     @Override
     public void start(Stage primaryStage) {
-        player1 = new Player("Player 1 (Blue)", Color.DODGERBLUE);
-        player2 = new Player("Player 2 (Green)", Color.LIMEGREEN);
-
-        mapManager = new MapManager();
-        setupGame();
+        // Initialize logic and pass 'this' as the UI Listener
+        gameLogic = new GameLogic(this);
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(10));
@@ -71,38 +58,34 @@ public class Main extends Application {
         boardView.setAlignment(Pos.CENTER);
         root.setCenter(boardView);
 
-        // 🟢 สร้างป้ายแสดงผลลูกเต๋า
         diceLabel = new Label("🎲");
-        diceLabel.setFont(Font.font("Arial", 60)); // ทำให้ขนาดใหญ่จุใจ
+        diceLabel.setFont(Font.font("Arial", 60));
         diceLabel.setTextFill(Color.DARKORANGE);
 
         rollBtn = new Button("Roll Dice");
         rollBtn.setFont(Font.font("Arial", 18));
         rollBtn.setStyle("-fx-background-color: #FF5733; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8;");
         rollBtn.setOnAction(e -> {
-            if (!isMoving) startTurn();
+            if (!isAnimating) startDiceRollAnimation();
         });
 
         Button restartBtn = new Button("Restart Game 🔄");
         restartBtn.setFont(Font.font("Arial", 18));
         restartBtn.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 8;");
         restartBtn.setOnAction(e -> {
-            setupGame();
-            isPlayer1Turn = true;
-            isMoving = false;
+            gameLogic.setupGame();
+            isAnimating = false;
             rollBtn.setDisable(false);
-            diceLabel.setText("🎲"); // รีเซ็ตหน้าลูกเต๋า
+            diceLabel.setText("🎲");
             statusLabel.setText("New Game! Player 1's Turn.");
-            updateBoard(null);
         });
 
-        // 🟢 เอาลูกเต๋าไปวางไว้ตรงกลางระหว่างปุ่มทอย กับ ปุ่มรีสตาร์ท
         HBox bottomBox = new HBox(30, rollBtn, diceLabel, restartBtn);
         bottomBox.setAlignment(Pos.CENTER);
         bottomBox.setPadding(new Insets(15));
         root.setBottom(bottomBox);
 
-        updateBoard(null);
+        gameLogic.setupGame(); // Start the game logic
 
         Scene scene = new Scene(root, 950, 850);
         primaryStage.setTitle("20x20 Epic Board Game");
@@ -110,89 +93,37 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    private void setupGame() {
-        mapManager.generateRandomMap();
-        Tile start = mapManager.getStartTile();
-
-        player1.setCurrentTile(start);
-        player2.setCurrentTile(start);
-
-        previousTiles.put(player1, null);
-        previousTiles.put(player2, null);
-    }
-
-    private void startTurn() {
-        currentPlayer = isPlayer1Turn ? player1 : player2;
-        enemyPlayer = isPlayer1Turn ? player2 : player1;
-
-        isMoving = true;
+    private void startDiceRollAnimation() {
+        isAnimating = true;
         rollBtn.setDisable(true);
-        statusLabel.setText(currentPlayer.getName() + " is rolling...");
+        Player current = gameLogic.getCurrentPlayer();
+        statusLabel.setText(current.getName() + " is rolling...");
 
-        // 🌟 สร้างแอนิเมชันลูกเต๋ากลิ้ง (สุ่มหน้าลูกเต๋ารัวๆ 10 ครั้ง)
         Timeline rollAnimation = new Timeline();
         for (int i = 0; i < 10; i++) {
             rollAnimation.getKeyFrames().add(new KeyFrame(Duration.millis(50 * i), e -> {
-                int randomFace = dice.nextInt(6);
-                diceLabel.setText(diceFaces[randomFace]); // สลับหน้าลูกเต๋าไปมา
+                diceLabel.setText(diceFaces[dice.nextInt(6)]);
             }));
         }
 
-        // 🌟 เมื่อแอนิเมชันกลิ้งจบลง ค่อยสุ่มแต้มจริงและเริ่มเดิน
         rollAnimation.setOnFinished(e -> {
-            remainingSteps = dice.nextInt(6) + 1;
-            diceLabel.setText(diceFaces[remainingSteps - 1]); // โชว์แต้มที่สุ่มได้จริง
-            statusLabel.setText(currentPlayer.getName() + " rolled " + remainingSteps + "! Moving...");
-            processMovement();
+            int steps = dice.nextInt(6) + 1;
+            diceLabel.setText(diceFaces[steps - 1]);
+            statusLabel.setText(current.getName() + " rolled " + steps + "! Moving...");
+
+            // Hand control over to the Logic class
+            gameLogic.executeTurn(steps);
         });
 
-        rollAnimation.play(); // เริ่มเล่นแอนิเมชันลูกเต๋า
+        rollAnimation.play();
     }
 
-    private void processMovement() {
-        if (remainingSteps <= 0) {
-            Tile landedTile = currentPlayer.getCurrentTile();
-            String effectMessage = landedTile.applyAction(currentPlayer, enemyPlayer);
+    // --- Implementing the GameUIListener Interface ---
 
-            if (landedTile instanceof TornadoTile || landedTile.getName().equals("Start")) {
-                previousTiles.put(currentPlayer, null);
-            }
-
-            statusLabel.setText(currentPlayer.getName() + " landed! " + effectMessage);
-            isPlayer1Turn = !isPlayer1Turn;
-            isMoving = false;
-            rollBtn.setDisable(false);
-            updateBoard(null);
-            return;
-        }
-
-        Tile current = currentPlayer.getCurrentTile();
-        Tile previous = previousTiles.get(currentPlayer);
-
-        List<Tile> choices = new ArrayList<>(current.getNextTiles());
-
-        if (choices.size() > 1 && previous != null) {
-            choices.remove(previous);
-        }
-
-        if (choices.isEmpty()) {
-            remainingSteps = 0;
-            processMovement();
-        } else if (choices.size() == 1) {
-            Tile nextTile = choices.get(0);
-            previousTiles.put(currentPlayer, current);
-            currentPlayer.moveForward(nextTile);
-            remainingSteps--;
-            processMovement();
-        } else {
-            statusLabel.setText("Intersection! Click on a YELLOW box to choose your path. (" + remainingSteps + " steps left)");
-            updateBoard(choices);
-        }
-    }
-
-    private void updateBoard(List<Tile> highlights) {
+    @Override
+    public void onBoardUpdate(List<Tile> highlights) {
         boardView.getChildren().clear();
-        Tile[][] gridTiles = mapManager.getGridTiles();
+        Tile[][] gridTiles = gameLogic.getMapManager().getGridTiles();
 
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
@@ -201,16 +132,17 @@ public class Main extends Application {
                 box.setPrefSize(35, 35);
 
                 if (tile != null) {
+                    // ... (Keep your exact same Image/ImageView loading code here) ...
                     String imageFileName = "sand.png";
                     if (tile instanceof CrabTile) imageFileName = "crab.png";
                     else if (tile instanceof JellyfishTile) imageFileName = "jellyfish.png";
                     else if (tile instanceof TornadoTile) imageFileName = "tornado.png";
                     else if (tile instanceof CardTile) imageFileName = "card.png";
+                    else if (tile instanceof GoalTile) imageFileName = "goal.png";
 
                     try {
                         String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
-                        Image img = new Image(imagePath);
-                        ImageView imageView = new ImageView(img);
+                        ImageView imageView = new ImageView(new Image(imagePath));
                         imageView.setFitWidth(35);
                         imageView.setFitHeight(35);
                         box.getChildren().add(imageView);
@@ -218,23 +150,23 @@ public class Main extends Application {
                         box.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
                     }
 
+                    // Handle Highlights for Intersections
                     if (highlights != null && highlights.contains(tile)) {
                         box.setBorder(new Border(new BorderStroke(Color.GOLD, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(3))));
                         box.setStyle("-fx-cursor: hand;");
                         box.setOnMouseClicked(e -> {
-                            previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
-                            currentPlayer.moveForward(tile);
-                            remainingSteps--;
-                            processMovement();
+                            // Tell the logic which path we chose!
+                            gameLogic.resumeMovementWithChoice(tile);
                         });
                     } else {
                         box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0.5))));
                     }
 
+                    // Draw Player Tokens
                     HBox tokens = new HBox(2);
                     tokens.setAlignment(Pos.CENTER);
-                    if (player1.getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, player1.getColor()));
-                    if (player2.getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, player2.getColor()));
+                    if (gameLogic.getPlayer1().getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, gameLogic.getPlayer1().getColor()));
+                    if (gameLogic.getPlayer2().getCurrentTile() == tile) tokens.getChildren().add(new Circle(8, gameLogic.getPlayer2().getColor()));
                     box.getChildren().add(tokens);
                 } else {
                     box.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
@@ -243,6 +175,22 @@ public class Main extends Application {
                 boardView.add(box, x, y);
             }
         }
+    }
+
+    @Override
+    public void onIntersection(List<Tile> choices, int remainingSteps) {
+        statusLabel.setText("Intersection! Click on a YELLOW box to choose your path. (" + remainingSteps + " steps left)");
+        onBoardUpdate(choices); // Highlight the choices
+    }
+
+    @Override
+    public void onTurnEnded(String effectMessage) {
+        Player previousPlayer = gameLogic.getCurrentPlayer() == gameLogic.getPlayer1() ? gameLogic.getPlayer2() : gameLogic.getPlayer1();
+        statusLabel.setText(previousPlayer.getName() + " landed! " + effectMessage + " Next player's turn.");
+
+        isAnimating = false;
+        rollBtn.setDisable(false);
+        onBoardUpdate(null); // Clear highlights and update final positions
     }
 
     public static void main(String[] args) {
