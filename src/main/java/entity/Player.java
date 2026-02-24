@@ -9,7 +9,8 @@ public class Player {
     private String name;
     private Color color;
     private Tile currentTile;
-    private Stack<Tile> history; // จำเส้นทางที่เดินผ่านมาเผื่อโดนสั่งถอยหลัง
+    private Stack<Tile> history;
+    private Image avatar;// จำเส้นทางที่เดินผ่านมาเผื่อโดนสั่งถอยหลัง
 
     public Player(String name, Color color) {
         this.name = name;
@@ -51,7 +52,6 @@ public class Player {
     public Stack<Tile> getHistory() {
         return history;
     }
-    private Image avatar; // 🟢 ตัวแปรเก็บรูปโปรไฟล์
 
     public Image getAvatar() {
         return avatar;
@@ -60,4 +60,5 @@ public class Player {
     public void setAvatar(Image avatar) {
         this.avatar = avatar;
     }
+
 }

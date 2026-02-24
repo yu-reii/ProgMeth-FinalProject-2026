@@ -1,6 +1,5 @@
-package application;
+package gui;
 
-import entity.Player;
 import entity.tile.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,28 +8,27 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import logic.GameLogic;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class BoardRenderer {
     private GridPane boardView;
-    private MapManager mapManager;
-    private Player player1;
-    private Player player2;
-    private Consumer<Tile> onTileClicked;
+    private GameLogic gameLogic;
 
-    public BoardRenderer(GridPane boardView, MapManager mapManager, Player player1, Player player2, Consumer<Tile> onTileClicked) {
-        this.boardView = boardView;
-        this.mapManager = mapManager;
-        this.player1 = player1;
-        this.player2 = player2;
-        this.onTileClicked = onTileClicked;
+    public BoardRenderer(GameLogic gameLogic) {
+        this.gameLogic = gameLogic;
+        boardView = new GridPane();
+        boardView.setHgap(0);
+        boardView.setVgap(0);
+        boardView.setAlignment(Pos.CENTER);
     }
+
+    public GridPane getView() { return boardView; }
 
     public void updateBoard(List<Tile> highlights) {
         boardView.getChildren().clear();
-        Tile[][] gridTiles = mapManager.getGridTiles();
+        Tile[][] gridTiles = gameLogic.getMapManager().getGridTiles();
 
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
@@ -44,6 +42,7 @@ public class BoardRenderer {
                     else if (tile instanceof JellyfishTile) imageFileName = "jellyfish.png";
                     else if (tile instanceof TornadoTile) imageFileName = "tornado.png";
                     else if (tile instanceof CardTile) imageFileName = "card.png";
+                    else if (tile instanceof GoalTile) imageFileName = "goal.png";
 
                     try {
                         String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
@@ -58,40 +57,36 @@ public class BoardRenderer {
                     if (highlights != null && highlights.contains(tile)) {
                         box.setBorder(new Border(new BorderStroke(Color.GOLD, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(3))));
                         box.setStyle("-fx-cursor: hand;");
-                        box.setOnMouseClicked(e -> {
-                            if (onTileClicked != null) onTileClicked.accept(tile);
-                        });
+                        box.setOnMouseClicked(e -> gameLogic.resumeMovementWithChoice(tile));
                     } else {
                         box.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(0.5))));
                     }
 
-                    // 🟢 ระบบวาดผู้เล่น: ถ้ารูปไม่ null จะวาดรูปตัวเล็กๆ ถ้าโหลดรูปไม่ติดจะวาดจุดกลมๆ แทน
                     HBox tokens = new HBox(2);
                     tokens.setAlignment(Pos.CENTER);
 
-                    if (player1.getCurrentTile() == tile) {
-                        if (player1.getAvatar() != null) {
-                            ImageView p1Avatar = new ImageView(player1.getAvatar());
-                            p1Avatar.setFitWidth(20); p1Avatar.setFitHeight(20); // 🟢 ให้ตัวละครไซส์เล็กพอดีกับช่อง
+                    if (gameLogic.getPlayer1().getCurrentTile() == tile) {
+                        if (gameLogic.getPlayer1().getAvatar() != null) {
+                            ImageView p1Avatar = new ImageView(gameLogic.getPlayer1().getAvatar());
+                            p1Avatar.setFitWidth(20); p1Avatar.setFitHeight(20);
                             tokens.getChildren().add(p1Avatar);
                         } else {
-                            tokens.getChildren().add(new Circle(8, player1.getColor()));
+                            tokens.getChildren().add(new Circle(8, gameLogic.getPlayer1().getColor()));
                         }
                     }
-                    if (player2.getCurrentTile() == tile) {
-                        if (player2.getAvatar() != null) {
-                            ImageView p2Avatar = new ImageView(player2.getAvatar());
+                    if (gameLogic.getPlayer2().getCurrentTile() == tile) {
+                        if (gameLogic.getPlayer2().getAvatar() != null) {
+                            ImageView p2Avatar = new ImageView(gameLogic.getPlayer2().getAvatar());
                             p2Avatar.setFitWidth(20); p2Avatar.setFitHeight(20);
                             tokens.getChildren().add(p2Avatar);
                         } else {
-                            tokens.getChildren().add(new Circle(8, player2.getColor()));
+                            tokens.getChildren().add(new Circle(8, gameLogic.getPlayer2().getColor()));
                         }
                     }
                     box.getChildren().add(tokens);
                 } else {
                     box.setBackground(new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY)));
                 }
-
                 boardView.add(box, x, y);
             }
         }
