@@ -46,9 +46,13 @@ public class BoardRenderer {
 
                     try {
                         String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
-                        ImageView imageView = new ImageView(new Image(imagePath));
-                        imageView.setFitWidth(35);
-                        imageView.setFitHeight(35);
+                        Image tileImage = new Image(imagePath, 32, 32, false, false);
+                        ImageView imageView = new ImageView(tileImage);
+                        imageView.setSmooth(false);
+                        imageView.setFitWidth(32);
+                        imageView.setFitHeight(32);
+
+                        box.setPrefSize(32,32);
                         box.getChildren().add(imageView);
                     } catch (Exception e) {
                         box.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
