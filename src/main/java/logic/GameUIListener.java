@@ -2,16 +2,15 @@ package logic;
 
 import entity.tile.Tile;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface GameUIListener {
-
-    // Called when the board needs to visually refresh
     void onBoardUpdate(List<Tile> highlights);
-
-    // Called when a player lands and the turn ends
     void onTurnEnded(String effectMessage);
-
-    // Called when the logic pauses at an intersection
     void onIntersection(List<Tile> choices, int remainingSteps);
 
+    void onSpecialTileEvent(Tile tile, Runnable onContinue);
+
+    // 🌟 ฟังก์ชันใหม่: สำหรับเปิดหน้าสุ่มการ์ด 3 ใบ
+    void onCardEvent(Consumer<Integer> onCardChosen);
 }

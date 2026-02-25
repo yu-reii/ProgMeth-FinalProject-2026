@@ -3,12 +3,14 @@ package entity;
 import entity.tile.Tile;
 import javafx.scene.paint.Color;
 import java.util.Stack;
+import javafx.scene.image.Image;
 
 public class Player {
     private String name;
     private Color color;
     private Tile currentTile;
-    private Stack<Tile> history; // จำเส้นทางที่เดินผ่านมาเผื่อโดนสั่งถอยหลัง
+    private Stack<Tile> history;
+    private Image avatar;// จำเส้นทางที่เดินผ่านมาเผื่อโดนสั่งถอยหลัง
 
     public Player(String name, Color color) {
         this.name = name;
@@ -50,4 +52,13 @@ public class Player {
     public Stack<Tile> getHistory() {
         return history;
     }
+
+    public Image getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(Image avatar) {
+        this.avatar = avatar;
+    }
+
 }
