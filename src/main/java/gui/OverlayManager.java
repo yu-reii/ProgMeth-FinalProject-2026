@@ -193,4 +193,45 @@ public class OverlayManager {
         overlayLayer.getChildren().addAll(title, img, desc, continueBtn);
         overlayLayer.setVisible(true);
     }
+
+    // 🌟 ส่วนที่เพิ่มเข้ามา: หน้าต่างเมนู Pause
+    public void showPauseMenu(Runnable onResume, Runnable onChangeMap, Runnable onHome) {
+        overlayLayer.getChildren().clear();
+
+        Label title = new Label("GAME PAUSED");
+        title.setFont(Main.getPixelFont(50));
+        title.setTextFill(Color.GOLD);
+
+        Button resumeBtn = new Button("RESUME");
+        styleMenuButton(resumeBtn, "#2ECC71");
+        resumeBtn.setOnAction(e -> {
+            overlayLayer.setVisible(false);
+            if (onResume != null) onResume.run();
+        });
+
+        Button changeMapBtn = new Button("CHANGE MAP");
+        styleMenuButton(changeMapBtn, "#3498DB");
+        changeMapBtn.setOnAction(e -> {
+            overlayLayer.setVisible(false);
+            if (onChangeMap != null) onChangeMap.run();
+        });
+
+        Button homeBtn = new Button("MAIN MENU");
+        styleMenuButton(homeBtn, "#E74C3C");
+        homeBtn.setOnAction(e -> {
+            overlayLayer.setVisible(false);
+            if (onHome != null) onHome.run();
+        });
+
+        VBox menuBox = new VBox(20, title, resumeBtn, changeMapBtn, homeBtn);
+        menuBox.setAlignment(Pos.CENTER);
+
+        overlayLayer.getChildren().addAll(menuBox);
+        overlayLayer.setVisible(true);
+    }
+
+    private void styleMenuButton(Button btn, String color) {
+        btn.setFont(Main.getPixelFont(24));
+        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 15 30; -fx-background-radius: 10; -fx-cursor: hand; -fx-min-width: 300;");
+    }
 }

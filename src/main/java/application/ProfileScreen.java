@@ -4,11 +4,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -22,6 +27,10 @@ public class ProfileScreen {
     private Stage stage;
     private Image p1SelectedAvatar;
     private Image p2SelectedAvatar;
+
+    private Color p1SelectedColor = Color.DODGERBLUE;
+    private Color p2SelectedColor = Color.LIMEGREEN;
+
     private List<ImageView> p1AvatarViews = new ArrayList<>();
     private List<ImageView> p2AvatarViews = new ArrayList<>();
 
@@ -32,11 +41,27 @@ public class ProfileScreen {
     public void show() {
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
-        root.setBackground(new Background(new BackgroundFill(Color.web("#2C3E50"), CornerRadii.EMPTY, Insets.EMPTY)));
 
+        // 🌟 เปลี่ยนพื้นหลังเป็นรูปภาพ setbc
+        try {
+            // ตรวจสอบนามสกุลไฟล์ของคุณด้วยนะครับ ถ้าเป็น .jpg ให้แก้ตรงนี้
+            Image bgImage = new Image(getClass().getResource("/background/setbc.png").toExternalForm());
+            BackgroundImage bImg = new BackgroundImage(bgImage,
+                    BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
+                    BackgroundPosition.CENTER,
+                    new BackgroundSize(100, 100, true, true, false, true));
+            root.setBackground(new Background(bImg));
+        } catch (Exception e) {
+            // ถ้าหารูปไม่เจอ จะกลับมาใช้สีเทาน้ำเงินเหมือนเดิมกันเหนียวไว้ให้ครับ
+            System.out.println("Background image not found, using default color.");
+            root.setBackground(new Background(new BackgroundFill(Color.web("#2C3E50"), CornerRadii.EMPTY, Insets.EMPTY)));
+        }
+
+        // เพื่อให้ข้อความอ่านง่ายขึ้นเมื่อมีรูปพื้นหลัง ผมเติมเงาดำบางๆ ให้ตัวหนังสือหลักครับ
         Label title = new Label("CHOOSE YOUR CHARACTER");
         title.setFont(Main.getPixelFont(32));
         title.setTextFill(Color.WHITE);
+        title.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 3);");
 
         Image img1 = loadImageSafely("/profile/pic1.png");
         Image img2 = loadImageSafely("/profile/pic2.png");
@@ -48,32 +73,52 @@ public class ProfileScreen {
 
         Label errorLabel = new Label("");
         errorLabel.setFont(Main.getPixelFont(20));
-        errorLabel.setTextFill(Color.web("#E74C3C"));
+        errorLabel.setTextFill(Color.web("#FF6B6B")); // ปรับสีแดงให้สว่างขึ้นนิดนึงเผื่อพื้นหลังมืด
+        errorLabel.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
 
-        Label p1Label = new Label("Player 1 (Blue):");
-        p1Label.setFont(Main.getPixelFont(20)); p1Label.setTextFill(Color.DODGERBLUE);
+        Label p1Label = new Label("Player 1:");
+        p1Label.setFont(Main.getPixelFont(20));
+        p1Label.setTextFill(Color.WHITE);
+        p1Label.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
+
+        ColorPicker p1ColorPicker = new ColorPicker(p1SelectedColor);
+        p1ColorPicker.setOnAction(e -> {
+            p1SelectedColor = p1ColorPicker.getValue();
+            updateAvatarVisuals();
+        });
+        HBox p1Header = new HBox(15, p1Label, p1ColorPicker);
+        p1Header.setAlignment(Pos.CENTER);
         HBox p1Box = createAvatarBox(images, true, errorLabel);
 
-        Label p2Label = new Label("Player 2 (Green):");
-        p2Label.setFont(Main.getPixelFont(20)); p2Label.setTextFill(Color.LIMEGREEN);
+        Label p2Label = new Label("Player 2:");
+        p2Label.setFont(Main.getPixelFont(20));
+        p2Label.setTextFill(Color.WHITE);
+        p2Label.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
+
+        ColorPicker p2ColorPicker = new ColorPicker(p2SelectedColor);
+        p2ColorPicker.setOnAction(e -> {
+            p2SelectedColor = p2ColorPicker.getValue();
+            updateAvatarVisuals();
+        });
+        HBox p2Header = new HBox(15, p2Label, p2ColorPicker);
+        p2Header.setAlignment(Pos.CENTER);
         HBox p2Box = createAvatarBox(images, false, errorLabel);
 
         Button playBtn = new Button("PLAY NOW!");
         playBtn.setFont(Main.getPixelFont(32));
-        playBtn.setStyle("-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-padding: 15 50; -fx-background-radius: 10; -fx-cursor: hand;");
+        playBtn.setStyle("-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-padding: 15 50; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 5);");
 
         playBtn.setOnAction(e -> {
             if (p1SelectedAvatar == p2SelectedAvatar && p1SelectedAvatar != null) {
                 errorLabel.setText("❌ Players cannot choose the same character!");
                 return;
             }
-            // ส่งรูปที่เลือก ไปให้ GameScreen
-            new GameScreen(stage, p1SelectedAvatar, p2SelectedAvatar).show();
+            new GameScreen(stage, p1SelectedAvatar, p2SelectedAvatar, p1SelectedColor, p2SelectedColor).show();
         });
 
         updateAvatarVisuals();
 
-        root.getChildren().addAll(title, errorLabel, p1Label, p1Box, p2Label, p2Box, playBtn);
+        root.getChildren().addAll(title, errorLabel, p1Header, p1Box, p2Header, p2Box, playBtn);
         stage.setScene(new Scene(root, 950, 850));
     }
 
@@ -113,9 +158,12 @@ public class ProfileScreen {
     }
 
     private void updateAvatarVisuals() {
+        String p1HexColor = toHexString(p1SelectedColor);
+        String p2HexColor = toHexString(p2SelectedColor);
+
         for (ImageView v : p1AvatarViews) {
             if (v.getImage() == p1SelectedAvatar) {
-                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, DODGERBLUE, 20, 0.8, 0, 0);");
+                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + p1HexColor + ", 20, 0.8, 0, 0);");
                 v.setOpacity(1.0);
             } else if (v.getImage() == p2SelectedAvatar) {
                 v.setStyle("-fx-cursor: default;"); v.setOpacity(0.3);
@@ -125,7 +173,7 @@ public class ProfileScreen {
         }
         for (ImageView v : p2AvatarViews) {
             if (v.getImage() == p2SelectedAvatar) {
-                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, LIMEGREEN, 20, 0.8, 0, 0);");
+                v.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + p2HexColor + ", 20, 0.8, 0, 0);");
                 v.setOpacity(1.0);
             } else if (v.getImage() == p1SelectedAvatar) {
                 v.setStyle("-fx-cursor: default;"); v.setOpacity(0.3);
@@ -133,6 +181,13 @@ public class ProfileScreen {
                 v.setStyle("-fx-cursor: hand;"); v.setOpacity(1.0);
             }
         }
+    }
+
+    private String toHexString(Color color) {
+        return String.format("#%02X%02X%02X",
+                (int) (color.getRed() * 255),
+                (int) (color.getGreen() * 255),
+                (int) (color.getBlue() * 255));
     }
 
     private Image loadImageSafely(String path) {
