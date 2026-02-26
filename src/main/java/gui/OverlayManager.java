@@ -97,8 +97,8 @@ public class OverlayManager {
         for (int i = 0; i < 3; i++) {
             final int effectType = cardTypes.get(i);
             ImageView cardView = new ImageView();
-            cardView.setFitWidth(130); cardView.setFitHeight(190);
-            try { cardView.setImage(new Image(getClass().getResource("/card/cardback.png").toExternalForm())); } catch (Exception e){}
+            cardView.setFitWidth(200); cardView.setFitHeight(200);
+            try { cardView.setImage(new Image(getClass().getResource("/card/back.png").toExternalForm())); } catch (Exception e){}
 
             StackPane wrapper = new StackPane(cardView);
             wrapper.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 0);");
@@ -125,10 +125,20 @@ public class OverlayManager {
                         flipIn.setFromX(0); flipIn.setToX(1);
                         flipIn.play();
 
+                        /**
+                         * card1 = forward 5
+                         * card2 = forward 3
+                         * card3 = enemy backward 3
+                         * card4 = enemy backward 5
+                         * card5 = enemy goes back to start
+                         */
+
                         if (cIndex == 2) {
-                            if (effectType == 1) effectDescText.setText("Card 1: MOVE FORWARD 5 STEPS!");
-                            else if (effectType == 2) effectDescText.setText("Card 2: MOVE BACKWARD 3 STEPS!");
-                            else if (effectType == 3) effectDescText.setText("Card 3: ENEMY MOVES BACKWARD 5 STEPS!");
+                            if (effectType == 1) effectDescText.setText("The tides are in your favour today!");
+                            else if (effectType == 2) effectDescText.setText("You found a treasure map, Perhaps it will lead you somewhere?");
+                            else if (effectType == 3) effectDescText.setText("Ouch! You enemy got sting by an urchin.");
+                            else if (effectType == 4) effectDescText.setText(("Oh no! A thunderstorm hinders your enemy's way, or maybe that's a good thing?"));
+                            else if (effectType == 5) effectDescText.setText("A portal opens up beneath your enemy's feet.");
 
                             overlayLayer.getChildren().add(effectDescText);
                             Timeline delay = new Timeline(new KeyFrame(Duration.millis(2500), waitEvent -> {
@@ -168,8 +178,9 @@ public class OverlayManager {
         desc.setTextFill(Color.WHITE);
 
         ImageView img = new ImageView();
-        img.setFitWidth(200); img.setFitHeight(200);
-        try { img.setImage(new Image(getClass().getResource("/tile/" + imageFileName).toExternalForm())); } catch (Exception e) {}
+        img.setFitWidth(256); img.setFitHeight(256);
+        String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
+        try { img.setImage(new Image(imagePath,256,256,false,false)); img.setSmooth(false);} catch (Exception e) {}
 
         Button continueBtn = new Button("APPLY EFFECT");
         continueBtn.setFont(Main.getPixelFont(20));

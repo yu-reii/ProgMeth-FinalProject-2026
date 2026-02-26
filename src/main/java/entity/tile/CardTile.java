@@ -8,6 +8,6 @@ public class CardTile extends Tile {
     @Override
     public String applyAction(Player current, Player enemy) {
 
-        return "Drew a Card! (Action incoming)";
+        return "Drew a Card!";
     }
 }

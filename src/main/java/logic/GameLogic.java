@@ -142,13 +142,22 @@ public class GameLogic {
             processMovement();
         } else if (cardType == 2) {
             // ถอยหลัง 3 ช่อง
-            animateBackward(getCurrentPlayer(), 3, () -> handleLanding());
+            this.remainingSteps = 3;
         } else if (cardType == 3) {
+            // เพื่อนถอยหลัง 3 ช่อง
+            animateBackward(getEnemyPlayer(), 3, () -> {
+                isPlayer1Turn = !isPlayer1Turn;
+                uiListener.onTurnEnded("Enemy was pushed back 3 steps by the Card!");
+            });
+        } else if (cardType == 4) {
             // เพื่อนถอยหลัง 5 ช่อง
             animateBackward(getEnemyPlayer(), 5, () -> {
                 isPlayer1Turn = !isPlayer1Turn;
                 uiListener.onTurnEnded("Enemy was pushed back 5 steps by the Card!");
             });
+        } else if (cardType == 5) {
+            // return enemy to start
+            getEnemyPlayer().returnToStart(getMapManager().getStartTile());
         }
     }
 

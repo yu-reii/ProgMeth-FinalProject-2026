@@ -42,11 +42,11 @@ public class GameScreen implements GameUIListener {
 
         // 🌟 โหลดรูปพื้นหลังหน้า Game
         try {
-            Image bgImage = new Image(getClass().getResource("/background/gamebc.jpg").toExternalForm());
+            Image bgImage = new Image(getClass().getResource("/background/game_bg.png").toExternalForm(),200,200,false,false);
             BackgroundImage bImg = new BackgroundImage(bgImage,
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
                     BackgroundPosition.CENTER,
-                    new BackgroundSize(100, 100, true, true, false, true)); // ให้รูปขยายเต็มหน้าจอ
+                    new BackgroundSize(200, 200, true, true, false, true));// ให้รูปขยายเต็มหน้าจอ
             gameRoot.setBackground(new Background(bImg));
         } catch (Exception e) {
             System.out.println("⚠️ โหลดรูปพื้นหลังหน้า Game ไม่สำเร็จ จะใช้สีทึบแทน");
