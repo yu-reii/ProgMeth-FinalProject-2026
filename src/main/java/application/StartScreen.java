@@ -23,11 +23,11 @@ public class StartScreen {
 
         // 🌟 โหลดรูปพื้นหลังหน้า Start
         try {
-            Image bgImage = new Image(getClass().getResource("/background/startbc.jpg").toExternalForm());
+            Image bgImage = new Image(getClass().getResource("/background/startbc.png").toExternalForm());
             BackgroundImage bImg = new BackgroundImage(bgImage,
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
                     BackgroundPosition.CENTER,
-                    new BackgroundSize(100, 100, true, true, false, true)); // ให้รูปขยายเต็มหน้าจอ
+                    new BackgroundSize(200, 200, true, true, false, true)); // ให้รูปขยายเต็มหน้าจอ
             root.setBackground(new Background(bImg));
         } catch (Exception e) {
             System.out.println("⚠️ โหลดรูปพื้นหลังหน้า Start ไม่สำเร็จ จะใช้สีทึบแทน");

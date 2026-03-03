@@ -73,7 +73,7 @@ public class ProfileScreen {
 
         Label errorLabel = new Label("");
         errorLabel.setFont(Main.getPixelFont(20));
-        errorLabel.setTextFill(Color.web("#FF6B6B")); // ปรับสีแดงให้สว่างขึ้นนิดนึงเผื่อพื้นหลังมืด
+        errorLabel.setTextFill(Color.web("#FF6B6B"));
         errorLabel.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
 
         Label p1Label = new Label("Player 1:");
