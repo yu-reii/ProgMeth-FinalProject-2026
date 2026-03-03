@@ -90,7 +90,7 @@ public class OverlayManager {
         HBox cardsBox = new HBox(30);
         cardsBox.setAlignment(Pos.CENTER);
 
-        List<Integer> cardTypes = new ArrayList<>(List.of(1, 2, 3));
+        List<Integer> cardTypes = new ArrayList<>(List.of(1, 2, 3, 4, 5));
         Collections.shuffle(cardTypes);
         boolean[] hasChosen = {false};
 

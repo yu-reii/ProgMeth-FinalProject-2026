@@ -141,7 +141,6 @@ public class GameLogic {
             this.remainingSteps = 5;
             processMovement();
         } else if (cardType == 2) {
-            // ถอยหลัง 3 ช่อง
             this.remainingSteps = 3;
         } else if (cardType == 3) {
             // เพื่อนถอยหลัง 3 ช่อง
