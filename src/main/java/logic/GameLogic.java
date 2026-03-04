@@ -73,7 +73,10 @@ public class GameLogic {
         processMovement();
     }
 
+    // ในไฟล์ logic/GameLogic.java
+
     private void processMovement() {
+        // 1. เช็คว่าแต้มหมดหรือยังตามปกติ
         if (remainingSteps <= 0) {
             handleLanding();
             return;
@@ -81,6 +84,15 @@ public class GameLogic {
 
         Player currentPlayer = getCurrentPlayer();
         Tile current = currentPlayer.getCurrentTile();
+
+
+        if (current instanceof GoalTile) {
+            remainingSteps = 0;
+            handleLanding();
+            return;
+        }
+
+
         Tile previous = previousTiles.get(currentPlayer);
 
         List<Tile> choices = new ArrayList<>(current.getNextTiles());
@@ -90,9 +102,7 @@ public class GameLogic {
 
         if (choices.isEmpty()) {
             remainingSteps = 0;
-            // 🌟 แก้บั๊กตรงนี้! ถ้าถึงสุดทาง (เช่น GoalTile) ให้บังคับลงจอดทันที ไม่ต้องยืนค้าง
             handleLanding();
-            return;
         } else if (choices.size() == 1) {
             Tile nextTile = choices.get(0);
             previousTiles.put(currentPlayer, current);
@@ -116,7 +126,6 @@ public class GameLogic {
             uiListener.onIntersection(choices, remainingSteps);
         }
     }
-
     public void resumeMovementWithChoice(Tile choice) {
         Player currentPlayer = getCurrentPlayer();
         previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
