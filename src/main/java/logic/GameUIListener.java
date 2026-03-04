@@ -11,6 +11,5 @@ public interface GameUIListener {
 
     void onSpecialTileEvent(Tile tile, Runnable onContinue);
 
-    // 🌟 ฟังก์ชันใหม่: สำหรับเปิดหน้าสุ่มการ์ด 3 ใบ
     void onCardEvent(Consumer<Integer> onCardChosen);
 }

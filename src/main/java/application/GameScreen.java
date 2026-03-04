@@ -56,7 +56,7 @@ public class GameScreen implements GameUIListener {
         BorderPane gameRoot = new BorderPane();
         gameRoot.setPadding(new Insets(10));
 
-        // โหลดรูปพื้นหลังหน้า Game
+
         try {
             Image bgImage = new Image(getClass().getResource("/background/game_bg.png").toExternalForm(),200,200,false,false);
             BackgroundImage bImg = new BackgroundImage(bgImage,
@@ -65,24 +65,24 @@ public class GameScreen implements GameUIListener {
                     new BackgroundSize(200, 200, true, true, false, true));// ให้รูปขยายเต็มหน้าจอ
             gameRoot.setBackground(new Background(bImg));
         } catch (Exception e) {
-            System.out.println("⚠️ โหลดรูปพื้นหลังหน้า Game ไม่สำเร็จ จะใช้สีทึบแทน");
+            System.out.println("Loading background failed. Using flat color instead.");
             gameRoot.setBackground(new Background(new BackgroundFill(Color.web("#F0F8FF"), CornerRadii.EMPTY, Insets.EMPTY)));
         }
 
-        // 🌟 สร้างแถบด้านบน (แยกโซนซ้าย/ขวาชัดเจน แก้ปัญหาข้อความทับปุ่ม)
+
         BorderPane topBar = new BorderPane();
         topBar.setPadding(new Insets(10, 20, 10, 20));
 
         statusLabel = new Label("Game Start! Player 1's Turn.");
         statusLabel.setFont(Main.getPixelFont(22));
-        // ใส่พื้นหลังให้ตัวอักษรนิดนึง จะได้อ่านง่ายขึ้นเวลาพื้นหลังลายตา
+
         statusLabel.setStyle("-fx-background-color: rgba(255, 255, 255, 0.8); -fx-padding: 5 15; -fx-background-radius: 10;");
 
         HBox statusBox = new HBox(statusLabel);
         statusBox.setAlignment(Pos.CENTER);
         topBar.setCenter(statusBox);
 
-        Button menuBtn = new Button("⚙ MENU");
+        Button menuBtn = new Button("MENU");
         menuBtn.setFont(Main.getPixelFont(16));
         menuBtn.setStyle("-fx-background-color: #2C3E50; -fx-text-fill: white; -fx-padding: 8 15; -fx-background-radius: 5; -fx-cursor: hand;");
 
@@ -115,29 +115,29 @@ public class GameScreen implements GameUIListener {
 
         overlayManager = new OverlayManager();
 
-        // 🌟 สร้างกรอบรูปตัวละคร พร้อมสีที่เลือกมา
+
         p1Node = createAvatarFrame(gameLogic.getPlayer1().getAvatar(), p1Color);
         p2Node = createAvatarFrame(gameLogic.getPlayer2().getAvatar(), p2Color);
 
-        // 🌟 สร้างหน้าตาของลูกเต๋า P1 (ซ่อนไว้ก่อน)
+        //p1 dice
         p1DiceView = new ImageView();
         p1DiceView.setFitWidth(60); p1DiceView.setFitHeight(60);
         p1DiceView.setVisible(false);
         StackPane p1DiceContainer = new StackPane(p1DiceView);
         p1DiceContainer.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 5);");
 
-        // 🌟 สร้างหน้าตาของลูกเต๋า P2 (ซ่อนไว้ก่อน)
+        //p2 dice
         p2DiceView = new ImageView();
         p2DiceView.setFitWidth(60); p2DiceView.setFitHeight(60);
         p2DiceView.setVisible(false);
         StackPane p2DiceContainer = new StackPane(p2DiceView);
         p2DiceContainer.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 5, 0, 0, 5);");
 
-        // 🌟 จัดกลุ่มให้ P1 (รูป P1 อยู่ซ้าย ลูกเต๋าอยู่ขวา)
+        //group p1
         HBox p1Area = new HBox(20, p1Node, p1DiceContainer);
         p1Area.setAlignment(Pos.CENTER_LEFT);
 
-        // 🌟 จัดกลุ่มให้ P2 (ลูกเต๋าอยู่ซ้าย รูป P2 อยู่ขวา)
+        // group p2
         HBox p2Area = new HBox(20, p2DiceContainer, p2Node);
         p2Area.setAlignment(Pos.CENTER_RIGHT);
 

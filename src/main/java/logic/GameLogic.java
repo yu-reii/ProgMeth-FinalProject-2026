@@ -22,7 +22,7 @@ public class GameLogic {
     private int remainingSteps;
 
     private Map<Player, Tile> previousTiles;
-    // 🌟 ตัวแปรใหม่: จำประวัติการเดินทั้งหมดของแต่ละคน เพื่อใช้ตอนถอยหลัง
+
     private Map<Player, List<Tile>> playerPaths;
 
     public GameLogic(GameUIListener uiListener) {
@@ -45,7 +45,7 @@ public class GameLogic {
         remainingSteps = 0;
         previousTiles.clear();
 
-        // เริ่มต้นประวัติการเดินที่จุด Start
+
         playerPaths.clear();
         playerPaths.put(player1, new ArrayList<>(List.of(startTile)));
         playerPaths.put(player2, new ArrayList<>(List.of(startTile)));
@@ -87,7 +87,7 @@ public class GameLogic {
             previousTiles.put(currentPlayer, current);
             currentPlayer.moveForward(nextTile);
 
-            // 🌟 บันทึกเส้นทางลงประวัติ
+
             playerPaths.get(currentPlayer).add(nextTile);
 
             remainingSteps--;
@@ -105,7 +105,7 @@ public class GameLogic {
         previousTiles.put(currentPlayer, currentPlayer.getCurrentTile());
         currentPlayer.moveForward(choice);
 
-        playerPaths.get(currentPlayer).add(choice); // บันทึกเส้นทาง
+        playerPaths.get(currentPlayer).add(choice); //remember tile
 
         remainingSteps--;
         uiListener.onBoardUpdate(null);
@@ -118,7 +118,7 @@ public class GameLogic {
         Player currentPlayer = getCurrentPlayer();
         Tile landedTile = currentPlayer.getCurrentTile();
 
-        // 🌟 แยกระบบช่องการ์ดออกมาต่างหาก
+
         if (landedTile instanceof CardTile) {
             uiListener.onCardEvent((cardType) -> executeCardEffect(cardType));
             return;
@@ -134,7 +134,7 @@ public class GameLogic {
         }
     }
 
-    // 🌟 ฟังก์ชันใหม่: ประมวลผลผลลัพธ์จากการ์ด
+
     private void executeCardEffect(int cardType) {
         if (cardType == 1) {
             // เดินหน้า 5 ช่อง
@@ -142,6 +142,7 @@ public class GameLogic {
             processMovement();
         } else if (cardType == 2) {
             this.remainingSteps = 3;
+            processMovement();
         } else if (cardType == 3) {
             // เพื่อนถอยหลัง 3 ช่อง
             animateBackward(getEnemyPlayer(), 3, () -> {
@@ -160,16 +161,16 @@ public class GameLogic {
         }
     }
 
-    // 🌟 ฟังก์ชันใหม่: ถอยหลังทีละก้าวแบบแอนิเมชันตามรอยเดิม
+
     private void animateBackward(Player p, int stepsLeft, Runnable onFinish) {
         List<Tile> path = playerPaths.get(p);
 
         if (stepsLeft <= 0 || path.size() <= 1) {
-            onFinish.run(); // ถอยเสร็จแล้ว
+            onFinish.run();
             return;
         }
 
-        // ลบช่องปัจจุบันออก แล้วดึงช่องก่อนหน้ามาเป็นปัจจุบัน
+
         path.remove(path.size() - 1);
         Tile prevTile = path.get(path.size() - 1);
         p.setCurrentTile(prevTile);

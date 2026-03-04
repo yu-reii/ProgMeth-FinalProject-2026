@@ -21,16 +21,16 @@ public class StartScreen {
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
 
-        // 🌟 โหลดรูปพื้นหลังหน้า Start
+
         try {
             Image bgImage = new Image(getClass().getResource("/background/startbc.png").toExternalForm());
             BackgroundImage bImg = new BackgroundImage(bgImage,
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
                     BackgroundPosition.CENTER,
-                    new BackgroundSize(200, 200, true, true, false, true)); // ให้รูปขยายเต็มหน้าจอ
+                    new BackgroundSize(200, 200, true, true, false, true));
             root.setBackground(new Background(bImg));
         } catch (Exception e) {
-            System.out.println("⚠️ โหลดรูปพื้นหลังหน้า Start ไม่สำเร็จ จะใช้สีทึบแทน");
+            System.out.println("Start screen background loading failed. Using a flat color");
             root.setBackground(new Background(new BackgroundFill(Color.web("#1A252C"), CornerRadii.EMPTY, Insets.EMPTY)));
         }
 

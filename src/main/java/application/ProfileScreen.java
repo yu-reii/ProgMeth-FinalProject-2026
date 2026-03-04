@@ -107,7 +107,7 @@ public class ProfileScreen {
 
         playBtn.setOnAction(e -> {
             if (p1SelectedAvatar == p2SelectedAvatar && p1SelectedAvatar != null) {
-                errorLabel.setText("❌ Players cannot choose the same character!");
+                errorLabel.setText("Players cannot choose the same character!");
                 return;
             }
             new GameScreen(stage, p1SelectedAvatar, p2SelectedAvatar, p1SelectedColor, p2SelectedColor).show();
@@ -134,13 +134,13 @@ public class ProfileScreen {
             iv.setOnMouseClicked(e -> {
                 if(isPlayer1) {
                     if (img == p2SelectedAvatar) {
-                        errorLabel.setText("❌ Player 2 already selected this!");
+                        errorLabel.setText("Player 2 already selected this!");
                         return;
                     }
                     p1SelectedAvatar = img;
                 } else {
                     if (img == p1SelectedAvatar) {
-                        errorLabel.setText("❌ Player 1 already selected this!");
+                        errorLabel.setText("Player 1 already selected this!");
                         return;
                     }
                     p2SelectedAvatar = img;
