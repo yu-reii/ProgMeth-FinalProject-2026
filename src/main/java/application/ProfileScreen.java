@@ -39,6 +39,7 @@ public class ProfileScreen {
     }
 
     public void show() {
+        SoundManager.playMusic("rest.wav");
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
 

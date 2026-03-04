@@ -18,6 +18,7 @@ public class StartScreen {
     }
 
     public void show() {
+        SoundManager.playMusic("start.wav");
         VBox root = new VBox(40);
         root.setAlignment(Pos.CENTER);
 
@@ -34,7 +35,7 @@ public class StartScreen {
             root.setBackground(new Background(new BackgroundFill(Color.web("#1A252C"), CornerRadii.EMPTY, Insets.EMPTY)));
         }
 
-        Label title = new Label("PIXEL ADVENTURE");
+        Label title = new Label("ADVENTURE UNDER THE SEA");
         title.setFont(Main.getPixelFont(60));
         title.setTextFill(Color.GOLD);
         title.setStyle("-fx-effect: dropshadow(gaussian, black, 10, 0.5, 0, 5);");
@@ -43,7 +44,10 @@ public class StartScreen {
         startBtn.setFont(Main.getPixelFont(32));
         startBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-padding: 15 50; -fx-background-radius: 10; -fx-cursor: hand;");
 
-        startBtn.setOnAction(e -> new ProfileScreen(stage).show());
+        startBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 ใส่เสียงกดปุ่มตรงนี้ครับ!
+            new ProfileScreen(stage).show();
+        });
 
         root.getChildren().addAll(title, startBtn);
         stage.setScene(new Scene(root, 950, 850));

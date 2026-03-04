@@ -1,6 +1,7 @@
 package gui;
 
 import application.Main;
+import application.SoundManager;
 import entity.tile.*;
 import javafx.animation.*;
 import javafx.geometry.Insets;
@@ -31,6 +32,50 @@ public class OverlayManager {
 
     public VBox getView() { return overlayLayer; }
 
+    public void showVictory(String winnerName, Image winnerAvatar, Color winnerColor, Runnable onReturnHome) {
+        overlayLayer.getChildren().clear();
+
+        Label winLabel = new Label("🎉 VICTORY! 🎉");
+        winLabel.setFont(Main.getPixelFont(60));
+        winLabel.setTextFill(Color.GOLD);
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(500), winLabel);
+        st.setFromX(0.5); st.setFromY(0.5);
+        st.setToX(1.1); st.setToY(1.1);
+        st.setCycleCount(Timeline.INDEFINITE);
+        st.setAutoReverse(true);
+        st.play();
+
+        ImageView avatarView = new ImageView(winnerAvatar);
+        avatarView.setFitWidth(180); avatarView.setFitHeight(180);
+
+        String hexColor = String.format("#%02X%02X%02X",
+                (int)(winnerColor.getRed() * 255),
+                (int)(winnerColor.getGreen() * 255),
+                (int)(winnerColor.getBlue() * 255));
+        avatarView.setStyle("-fx-effect: dropshadow(three-pass-box, " + hexColor + ", 30, 0.7, 0, 0);");
+
+        Label nameLabel = new Label(winnerName + " IS THE CHAMPION!");
+        nameLabel.setFont(Main.getPixelFont(30));
+        nameLabel.setTextFill(Color.WHITE);
+
+        Button backHomeBtn = new Button("BACK TO MAIN MENU");
+        styleMenuButton(backHomeBtn, "#27AE60");
+
+        backHomeBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 เสียงกดปุ่ม
+            overlayLayer.setVisible(false);
+            SoundManager.playMusic("start.wav");
+            if (onReturnHome != null) onReturnHome.run();
+        });
+
+        VBox content = new VBox(30, winLabel, avatarView, nameLabel, backHomeBtn);
+        content.setAlignment(Pos.CENTER);
+
+        overlayLayer.getChildren().add(content);
+        overlayLayer.setVisible(true);
+    }
+
     public void showDiceRoll(String playerName, Random dice, Consumer<Integer> onFinish) {
         overlayLayer.getChildren().clear();
 
@@ -46,6 +91,9 @@ public class OverlayManager {
 
         overlayLayer.getChildren().addAll(rollingText, hugeDiceContainer);
         overlayLayer.setVisible(true);
+
+        // เล่นเสียงลูกเต๋า (ยังคงไว้ตามเดิม)
+        SoundManager.playSFX("dice.mp3");
 
         RotateTransition rt = new RotateTransition(Duration.millis(800), hugeDiceContainer);
         rt.setByAngle(720);
@@ -105,6 +153,9 @@ public class OverlayManager {
 
             wrapper.setOnMouseClicked(e -> {
                 if (hasChosen[0]) return;
+
+                SoundManager.playSFX("button.wav"); // 🎵 เสียงกดเลือกไพ่
+
                 hasChosen[0] = true;
                 wrapper.setBorder(new Border(new BorderStroke(Color.GOLD, BorderStrokeStyle.SOLID, new CornerRadii(8), new BorderWidths(6))));
 
@@ -120,18 +171,12 @@ public class OverlayManager {
                     ScaleTransition flipOut = new ScaleTransition(Duration.millis(300), cView);
                     flipOut.setFromX(1); flipOut.setToX(0);
                     flipOut.setOnFinished(ev -> {
+                        SoundManager.playSFX("flip.mp3"); // 🎵 เสียงตอนไพ่พลิกหงายหน้าขึ้น
+
                         try { cView.setImage(new Image(getClass().getResource("/card/card" + cType + ".png").toExternalForm())); } catch(Exception ex){}
                         ScaleTransition flipIn = new ScaleTransition(Duration.millis(300), cView);
                         flipIn.setFromX(0); flipIn.setToX(1);
                         flipIn.play();
-
-                        /**
-                         * card1 = forward 5
-                         * card2 = forward 3
-                         * card3 = enemy backward 3
-                         * card4 = enemy backward 5
-                         * card5 = enemy goes back to start
-                         */
 
                         if (cIndex == 2) {
                             if (effectType == 1) effectDescText.setText("The tides are in your favour today!");
@@ -162,10 +207,22 @@ public class OverlayManager {
         String eventName = "Event!";
         String effectDesc = "Something happened!";
 
-        if (tile instanceof CrabTile) { imageFileName = "crab.png"; eventName = "CRAB ATTACK!"; effectDesc = "Move backwards!"; }
-        else if (tile instanceof JellyfishTile) { imageFileName = "jellyfish.png"; eventName = "JELLYFISH STING!"; effectDesc = "Ouch! You got shocked!"; }
-        else if (tile instanceof TornadoTile) { imageFileName = "tornado.png"; eventName = "TORNADO!!"; effectDesc = "Blown back to start!"; }
-        else if (tile instanceof GoalTile) { imageFileName = "goal.png"; eventName = "GOAL REACHED!"; effectDesc = "You are the winner!"; }
+        // 🎵 ตรวจสอบว่าเป็น Tile อะไร แล้วเล่นเสียงให้ตรงจุด
+        if (tile instanceof CrabTile) {
+            SoundManager.playSFX("crab.mp3"); // เสียงปู
+            imageFileName = "crab.png"; eventName = "CRAB ATTACK!"; effectDesc = "Move backwards!";
+        }
+        else if (tile instanceof JellyfishTile) {
+            SoundManager.playSFX("jelly.mp3"); // เสียงแมงกะพรุน
+            imageFileName = "jellyfish.png"; eventName = "JELLYFISH STING!"; effectDesc = "Ouch! You got shocked!";
+        }
+        else if (tile instanceof TornadoTile) {
+            SoundManager.playSFX("tonado.wav"); // เสียงพายุ
+            imageFileName = "tornado.png"; eventName = "TORNADO!!"; effectDesc = "Blown back to start!";
+        }
+        else if (tile instanceof GoalTile) {
+            imageFileName = "goal.png"; eventName = "GOAL REACHED!"; effectDesc = "You are the winner!";
+        }
 
         overlayLayer.getChildren().clear();
 
@@ -179,13 +236,17 @@ public class OverlayManager {
 
         ImageView img = new ImageView();
         img.setFitWidth(256); img.setFitHeight(256);
-        String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
-        try { img.setImage(new Image(imagePath,256,256,false,false)); img.setSmooth(false);} catch (Exception e) {}
+        try {
+            String imagePath = getClass().getResource("/tile/" + imageFileName).toExternalForm();
+            img.setImage(new Image(imagePath,256,256,false,false));
+            img.setSmooth(false);
+        } catch (Exception e) {}
 
         Button continueBtn = new Button("APPLY EFFECT");
         continueBtn.setFont(Main.getPixelFont(20));
         continueBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-padding: 10 30; -fx-background-radius: 10; -fx-cursor: hand;");
         continueBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 เสียงกดปุ่ม Apply Effect
             overlayLayer.setVisible(false);
             onContinue.run();
         });
@@ -194,7 +255,6 @@ public class OverlayManager {
         overlayLayer.setVisible(true);
     }
 
-    // 🌟 ส่วนที่เพิ่มเข้ามา: หน้าต่างเมนู Pause
     public void showPauseMenu(Runnable onResume, Runnable onChangeMap, Runnable onHome) {
         overlayLayer.getChildren().clear();
 
@@ -205,6 +265,7 @@ public class OverlayManager {
         Button resumeBtn = new Button("RESUME");
         styleMenuButton(resumeBtn, "#2ECC71");
         resumeBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 เสียงกดปุ่ม Resume
             overlayLayer.setVisible(false);
             if (onResume != null) onResume.run();
         });
@@ -212,6 +273,7 @@ public class OverlayManager {
         Button changeMapBtn = new Button("CHANGE MAP");
         styleMenuButton(changeMapBtn, "#3498DB");
         changeMapBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 เสียงกดปุ่ม Change Map
             overlayLayer.setVisible(false);
             if (onChangeMap != null) onChangeMap.run();
         });
@@ -219,6 +281,7 @@ public class OverlayManager {
         Button homeBtn = new Button("MAIN MENU");
         styleMenuButton(homeBtn, "#E74C3C");
         homeBtn.setOnAction(e -> {
+            SoundManager.playSFX("button.wav"); // 🎵 เสียงกดปุ่ม Main Menu
             overlayLayer.setVisible(false);
             if (onHome != null) onHome.run();
         });
@@ -232,6 +295,7 @@ public class OverlayManager {
 
     private void styleMenuButton(Button btn, String color) {
         btn.setFont(Main.getPixelFont(24));
-        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 15 30; -fx-background-radius: 10; -fx-cursor: hand; -fx-min-width: 300;");
+        btn.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-padding: 15 30; " +
+                "-fx-background-radius: 10; -fx-cursor: hand; -fx-min-width: 300;");
     }
 }
