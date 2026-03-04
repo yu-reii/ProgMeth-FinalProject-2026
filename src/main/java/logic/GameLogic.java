@@ -25,6 +25,7 @@ public class GameLogic {
     private Player winner = null;
 
     private Map<Player, Tile> previousTiles;
+    // 🌟 ตัวแปรใหม่: จำประวัติการเดินทั้งหมดของแต่ละคน เพื่อใช้ตอนถอยหลัง
     private Map<Player, List<Tile>> playerPaths;
 
     private int animationId = 0;
@@ -188,6 +189,7 @@ public class GameLogic {
             return;
         }
 
+        // ลบช่องปัจจุบันออก แล้วดึงช่องก่อนหน้ามาเป็นปัจจุบัน
         path.remove(path.size() - 1);
         Tile prevTile = path.get(path.size() - 1);
         p.setCurrentTile(prevTile);

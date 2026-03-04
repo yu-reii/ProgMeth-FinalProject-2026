@@ -43,9 +43,7 @@ public class ProfileScreen {
         VBox root = new VBox(25);
         root.setAlignment(Pos.CENTER);
 
-        // 🌟 เปลี่ยนพื้นหลังเป็นรูปภาพ setbc
         try {
-            // ตรวจสอบนามสกุลไฟล์ของคุณด้วยนะครับ ถ้าเป็น .jpg ให้แก้ตรงนี้
             Image bgImage = new Image(getClass().getResource("/background/setbc.png").toExternalForm());
             BackgroundImage bImg = new BackgroundImage(bgImage,
                     BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT,
@@ -53,21 +51,20 @@ public class ProfileScreen {
                     new BackgroundSize(100, 100, true, true, false, true));
             root.setBackground(new Background(bImg));
         } catch (Exception e) {
-            // ถ้าหารูปไม่เจอ จะกลับมาใช้สีเทาน้ำเงินเหมือนเดิมกันเหนียวไว้ให้ครับ
             System.out.println("Background image not found, using default color.");
             root.setBackground(new Background(new BackgroundFill(Color.web("#2C3E50"), CornerRadii.EMPTY, Insets.EMPTY)));
         }
 
-        // เพื่อให้ข้อความอ่านง่ายขึ้นเมื่อมีรูปพื้นหลัง ผมเติมเงาดำบางๆ ให้ตัวหนังสือหลักครับ
         Label title = new Label("CHOOSE YOUR CHARACTER");
         title.setFont(Main.getPixelFont(32));
         title.setTextFill(Color.WHITE);
         title.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 3);");
 
-        Image img1 = loadImageSafely("/profile/pic1.png");
-        Image img2 = loadImageSafely("/profile/pic2.png");
-        Image img3 = loadImageSafely("/profile/pic3.png");
-        Image[] images = {img1, img2, img3};
+        Image img1 = loadImageSafely("/profile/blue.png");
+        Image img2 = loadImageSafely("/profile/green.png");
+        Image img3 = loadImageSafely("/profile/purple.png");
+        Image img4 = loadImageSafely("/profile/red.png");
+        Image[] images = {img1, img2, img3, img4};
 
         p1SelectedAvatar = img1;
         p2SelectedAvatar = img2 != null ? img2 : img1;
@@ -111,7 +108,7 @@ public class ProfileScreen {
 
         playBtn.setOnAction(e -> {
             if (p1SelectedAvatar == p2SelectedAvatar && p1SelectedAvatar != null) {
-                errorLabel.setText("❌ Players cannot choose the same character!");
+                errorLabel.setText("Players cannot choose the same character!");
                 return;
             }
             new GameScreen(stage, p1SelectedAvatar, p2SelectedAvatar, p1SelectedColor, p2SelectedColor).show();
@@ -138,13 +135,13 @@ public class ProfileScreen {
             iv.setOnMouseClicked(e -> {
                 if(isPlayer1) {
                     if (img == p2SelectedAvatar) {
-                        errorLabel.setText("❌ Player 2 already selected this!");
+                        errorLabel.setText("Player 2 already selected this!");
                         return;
                     }
                     p1SelectedAvatar = img;
                 } else {
                     if (img == p1SelectedAvatar) {
-                        errorLabel.setText("❌ Player 1 already selected this!");
+                        errorLabel.setText("Player 1 already selected this!");
                         return;
                     }
                     p2SelectedAvatar = img;

@@ -8,7 +8,7 @@ public class TornadoTile extends Tile {
         this.startTile = startTile;
     }
     @Override public String applyAction(Player current, Player enemy) {
-        current.returnToStart(startTile); // กลับจุดเริ่มต้น
+        current.returnToStart(startTile);
         return "TORNADO! " + current.getName() + " is blown back to Start!";
     }
 }

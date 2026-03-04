@@ -182,7 +182,7 @@ public class OverlayManager {
                             if (effectType == 1) effectDescText.setText("The tides are in your favour today!");
                             else if (effectType == 2) effectDescText.setText("You found a treasure map, Perhaps it will lead you somewhere?");
                             else if (effectType == 3) effectDescText.setText("Ouch! You enemy got sting by an urchin.");
-                            else if (effectType == 4) effectDescText.setText(("Oh no! A thunderstorm hinders your enemy's way, or maybe that's a good thing?"));
+                            else if (effectType == 4) effectDescText.setText(("Oh no! A thunderstorm hinders your enemy's way"));
                             else if (effectType == 5) effectDescText.setText("A portal opens up beneath your enemy's feet.");
 
                             overlayLayer.getChildren().add(effectDescText);
